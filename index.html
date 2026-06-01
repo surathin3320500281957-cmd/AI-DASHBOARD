@@ -398,10 +398,223 @@ th{
   background:rgba(59,130,246,0.08);
 }
 
+/* TABS */
+.tabBar{
+  display:flex;
+  gap:4px;
+  margin-bottom:16px;
+  border-bottom:2px solid #1e293b;
+  padding-bottom:0;
+}
+
+.tabBtn{
+  padding:10px 20px;
+  border:none;
+  background:transparent;
+  color:#64748b;
+  font-size:14px;
+  font-weight:bold;
+  cursor:pointer;
+  border-bottom:3px solid transparent;
+  margin-bottom:-2px;
+  border-radius:8px 8px 0 0;
+  transition:all 0.2s;
+}
+
+.tabBtn:hover{
+  color:#94a3b8;
+  background:#0f172a;
+}
+
+.tabBtn.active{
+  color:#38bdf8;
+  border-bottom:3px solid #38bdf8;
+  background:#0f172a;
+}
+
+.tabContent{
+  display:none;
+}
+
+.tabContent.active{
+  display:block;
+}
+
+/* MANAGE SYMBOLS */
+.managePanel{
+  background:#0f172a;
+  border:1px solid #1e293b;
+  border-radius:12px;
+  padding:16px;
+  margin-bottom:16px;
+}
+
+.managePanelTitle{
+  font-size:13px;
+  color:#64748b;
+  margin-bottom:12px;
+  text-transform:uppercase;
+  letter-spacing:1px;
+}
+
+.sheetUrlRow{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:12px;
+  align-items:center;
+}
+
+.sheetUrlInput{
+  flex:1;
+  min-width:200px;
+  padding:8px 12px;
+  background:#020617;
+  border:1px solid #334155;
+  border-radius:8px;
+  color:white;
+  font-size:13px;
+}
+
+.sheetUrlInput:focus{
+  outline:none;
+  border-color:#38bdf8;
+}
+
+#loadSheetBtn{
+  background:#0284c7;
+}
+
+#loadSheetBtn:disabled{
+  opacity:0.5;
+  cursor:not-allowed;
+}
+
+#useDefaultBtn{
+  background:#475569;
+}
+
+#applySymbolsBtn{
+  background:#16a34a;
+}
+
+#applySymbolsBtn:disabled{
+  opacity:0.4;
+  cursor:not-allowed;
+}
+
+.symbolsStatusMsg{
+  font-size:13px;
+  color:#facc15;
+  margin-bottom:10px;
+  min-height:20px;
+}
+
+/* SYMBOL TABLE */
+.symbolTable{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:8px;
+  font-size:13px;
+}
+
+.symbolTable th{
+  background:#1e293b;
+  padding:8px 10px;
+  text-align:left;
+  position:sticky;
+  top:0;
+}
+
+.symbolTable td{
+  padding:7px 10px;
+  text-align:left;
+  border-bottom:1px solid #1e293b;
+}
+
+.symbolTable tr:hover td{
+  background:#1e293b44;
+}
+
+.noGroupBadge{
+  display:inline-block;
+  padding:3px 8px;
+  background:#450a0a;
+  color:#fca5a5;
+  border-radius:6px;
+  font-size:11px;
+  font-weight:bold;
+}
+
+.groupBadge{
+  display:inline-block;
+  padding:3px 8px;
+  background:#172554;
+  color:#93c5fd;
+  border-radius:6px;
+  font-size:11px;
+}
+
+.suggestGroupSelect{
+  background:#0f172a;
+  border:1px solid #334155;
+  color:white;
+  padding:4px 8px;
+  border-radius:6px;
+  font-size:12px;
+  cursor:pointer;
+}
+
+.warningBox{
+  background:#3f2a00;
+  border:1px solid #854d0e;
+  border-radius:10px;
+  padding:12px 16px;
+  margin-bottom:12px;
+  color:#fde68a;
+  font-size:13px;
+}
+
+.infoBox{
+  background:#052e16;
+  border:1px solid #166534;
+  border-radius:10px;
+  padding:12px 16px;
+  margin-bottom:12px;
+  color:#86efac;
+  font-size:13px;
+}
+
+.sourceTag{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:6px;
+  font-size:11px;
+  font-weight:bold;
+  margin-left:8px;
+}
+
+.sourceSheet{
+  background:#1e3a5f;
+  color:#7dd3fc;
+}
+
+.sourceDefault{
+  background:#1e293b;
+  color:#94a3b8;
+}
+
 </style>
 </head>
 
 <body>
+
+<div class="tabBar">
+  <button class="tabBtn" id="tabDashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
+  <button class="tabBtn active" id="tabManage" onclick="switchTab('manage')">⚙️ Manage Symbols</button>
+</div>
+
+<div id="contentDashboard" class="tabContent">
 
 <div class="topHeader">
 
@@ -569,6 +782,54 @@ class="breadthValue">
 <tbody id="tb"></tbody>
 
 </table>
+
+<!-- END contentDashboard -->
+</div>
+
+<!-- MANAGE SYMBOLS TAB -->
+<div id="contentManage" class="tabContent active">
+
+<div class="managePanel">
+  <div class="managePanelTitle">📡 Google Sheet Connection</div>
+  <div class="sheetUrlRow">
+    <input class="sheetUrlInput" id="sheetUrlInput"
+      placeholder="วาง Google Sheet URL หรือ Spreadsheet ID ที่นี่..."
+      value="1D_gdl4a8euUbfEy5OY_Wbk4QgFNiGpFagGJ_KBRrpFo"
+    />
+    <button id="loadSheetBtn" onclick="loadFromSheet()">📥 Load Sheet</button>
+    <button id="useDefaultBtn" onclick="useDefaultSymbols()">🏠 Default Stocks</button>
+  </div>
+  <div class="symbolsStatusMsg" id="symbolsStatusMsg">
+    💡 กด "Load Sheet" เพื่อโหลดหุ้นจาก Google Sheet หรือ "Default Stocks" เพื่อใช้หุ้นเดิม
+  </div>
+</div>
+
+<div id="warningArea"></div>
+
+<div class="managePanel" id="symbolPreviewPanel" style="display:none;">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+    <div class="managePanelTitle" style="margin:0;">
+      📋 Symbol Preview
+      <span id="sourceTagEl" class="sourceTag sourceSheet">📡 FROM SHEET</span>
+    </div>
+    <button id="applySymbolsBtn" onclick="applyAndGoDashboard()" disabled>
+      ✅ Apply &amp; Go to Dashboard →
+    </button>
+  </div>
+  <table class="symbolTable">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Symbol</th>
+        <th>Group</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="symbolPreviewBody"></tbody>
+  </table>
+</div>
+
+</div><!-- END contentManage -->
 
 <script>
 
@@ -1083,11 +1344,14 @@ async function load(){
 
   let allResults = [];
 
-  for(let group in groups){
+  // ใช้ activeGroups ถ้ามี ไม่งั้นใช้ DEFAULT_GROUPS
+  const currentGroups = activeGroups || DEFAULT_GROUPS;
+
+  for(let group in currentGroups){
 
     let results =
     await Promise.all(
-    groups[group].map(
+    currentGroups[group].map(
     s => fetchData(s)
     ));
 
@@ -1594,7 +1858,259 @@ function exportText(){
 
 }
 
-load();
+/* =========================================
+   TAB SYSTEM
+   ========================================= */
+
+function switchTab(tab){
+  document.getElementById("contentDashboard").classList.toggle("active", tab==="dashboard");
+  document.getElementById("contentManage").classList.toggle("active", tab==="manage");
+  document.getElementById("tabDashboard").classList.toggle("active", tab==="dashboard");
+  document.getElementById("tabManage").classList.toggle("active", tab==="manage");
+}
+
+/* =========================================
+   DEFAULT SYMBOLS (hardcoded เดิม)
+   ========================================= */
+
+const DEFAULT_GROUPS = {
+  "🚀 AI Infrastructure":["TSSI","ALAB","DELL","NBIS"],
+  "💾 Memory":["STX","SNDK"],
+  "🧠 AI Software":["HIMS","RXRX"],
+  "🤖 Robotics":["SYM","SERV"],
+  "⚛️ Quantum":["QBTS","QUBT","IONQ"],
+  "🛰 Space":["LUNR","PL"]
+};
+
+/* activeGroups คือ object ที่ loop ใช้งานจริง */
+let activeGroups = null;
+
+/* =========================================
+   LOAD FROM GOOGLE SHEET
+   ========================================= */
+
+async function loadFromSheet(){
+  const btn = document.getElementById("loadSheetBtn");
+  const statusEl = document.getElementById("symbolsStatusMsg");
+  const input = document.getElementById("sheetUrlInput").value.trim();
+
+  if(!input){
+    statusEl.innerHTML = "⚠️ กรุณากรอก URL หรือ Spreadsheet ID";
+    return;
+  }
+
+  // ดึง spreadsheet ID จาก URL หรือใช้ตรงๆ
+  let sheetId = input;
+  const match = input.match(/\/d\/([a-zA-Z0-9_-]+)/);
+  if(match) sheetId = match[1];
+
+  btn.disabled = true;
+  btn.innerHTML = "⏳ Loading...";
+  statusEl.innerHTML = "⏳ กำลังโหลดข้อมูลจาก Google Sheet...";
+
+  try{
+    // อ่าน symbol_active
+    const activeUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=symbol_active`;
+    const groupUrl  = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=symbol_gruop`;
+
+    const [activeRes, groupRes] = await Promise.all([
+      fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(activeUrl)),
+      fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent(groupUrl))
+    ]);
+
+    const activeText = await activeRes.text();
+    const groupText  = await groupRes.text();
+
+    // parse CSV
+    const activeSymbols = parseCSVColumn(activeText, 0).filter(s => s && s !== "symbol");
+
+    const groupMap = {}; // symbol -> group_name (emoji version)
+    parseCSVRows(groupText).forEach(row => {
+      if(!row[0] || row[0]==="symbol") return;
+      const sym   = row[0].trim().toUpperCase();
+      const grp   = (row[1]||"").trim();
+      // ถ้ามี emoji ให้เก็บทับเสมอ (ใช้ emoji version)
+      if(!groupMap[sym] || /\p{Emoji}/u.test(grp)){
+        groupMap[sym] = grp;
+      }
+    });
+
+    if(activeSymbols.length === 0){
+      statusEl.innerHTML = "❌ ไม่พบข้อมูลใน sheet symbol_active กรุณาตรวจสอบ Sheet";
+      btn.disabled = false;
+      btn.innerHTML = "📥 Load Sheet";
+      return;
+    }
+
+    statusEl.innerHTML = `✅ โหลดสำเร็จ: ${activeSymbols.length} symbols`;
+    renderSymbolPreview(activeSymbols, groupMap, "sheet");
+
+  }catch(err){
+    statusEl.innerHTML = "❌ Error: " + err.message;
+    console.error(err);
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = "📥 Load Sheet";
+}
+
+function parseCSVColumn(text, colIndex){
+  return text.split("\n").map(line => {
+    const parts = line.replace(/"/g,"").split(",");
+    return (parts[colIndex]||"").trim();
+  }).filter(Boolean);
+}
+
+function parseCSVRows(text){
+  return text.split("\n").map(line =>
+    line.replace(/"/g,"").split(",").map(s=>s.trim())
+  ).filter(r => r.length >= 2);
+}
+
+/* =========================================
+   USE DEFAULT SYMBOLS
+   ========================================= */
+
+function useDefaultSymbols(){
+  // แปลง DEFAULT_GROUPS เป็น activeSymbols + groupMap
+  const allSymbols = [];
+  const groupMap   = {};
+  for(const [grp, syms] of Object.entries(DEFAULT_GROUPS)){
+    syms.forEach(s => {
+      allSymbols.push(s);
+      groupMap[s] = grp;
+    });
+  }
+  document.getElementById("symbolsStatusMsg").innerHTML =
+    "🏠 ใช้หุ้น Default (hardcoded เดิม)";
+  renderSymbolPreview(allSymbols, groupMap, "default");
+}
+
+/* =========================================
+   RENDER SYMBOL PREVIEW
+   ========================================= */
+
+// กลุ่มแนะนำให้ dropdown
+const SUGGESTED_GROUPS = [
+  "🚀 AI Infrastructure",
+  "💾 Memory",
+  "🧠 AI Software",
+  "🤖 Robotics",
+  "⚛️ Quantum",
+  "🛰 Space",
+  "🧠 AI & Semi",
+  "🚀 Growth",
+  "📊 Other"
+];
+
+let pendingSymbols  = [];
+let pendingGroupMap = {};
+
+function renderSymbolPreview(symbols, groupMap, source){
+  pendingSymbols  = symbols;
+  pendingGroupMap = {...groupMap};
+
+  const panel = document.getElementById("symbolPreviewPanel");
+  const tbody = document.getElementById("symbolPreviewBody");
+  const warn  = document.getElementById("warningArea");
+  const applyBtn = document.getElementById("applySymbolsBtn");
+  const sourceTag = document.getElementById("sourceTagEl");
+
+  panel.style.display = "block";
+
+  sourceTag.className = source === "sheet"
+    ? "sourceTag sourceSheet"
+    : "sourceTag sourceDefault";
+  sourceTag.innerHTML = source === "sheet"
+    ? "📡 FROM SHEET"
+    : "🏠 DEFAULT";
+
+  const noGroup = symbols.filter(s => !groupMap[s]);
+
+  // warning box
+  if(noGroup.length > 0){
+    warn.innerHTML = `
+      <div class="warningBox">
+        ⚠️ <strong>พบ ${noGroup.length} หุ้นที่ยังไม่มีกลุ่ม</strong> — กรุณาเลือกกลุ่มให้ครบก่อนกด Apply<br/>
+        <small style="opacity:0.8;">หรือไปเพิ่มข้อมูลใน Google Sheet แล้ว Load ใหม่</small>
+      </div>`;
+    applyBtn.disabled = true;
+  } else {
+    warn.innerHTML = `<div class="infoBox">✅ หุ้นทุกตัวมีกลุ่มครบแล้ว พร้อม Apply</div>`;
+    applyBtn.disabled = false;
+  }
+
+  // render rows
+  tbody.innerHTML = "";
+  symbols.forEach((sym, i) => {
+    const grp = groupMap[sym];
+    const hasGroup = !!grp;
+
+    const optionsHtml = SUGGESTED_GROUPS.map(g =>
+      `<option value="${g}" ${g===grp?"selected":""}>${g}</option>`
+    ).join("");
+
+    tbody.innerHTML += `
+      <tr>
+        <td style="color:#64748b;">${i+1}</td>
+        <td style="font-weight:bold;">${sym}</td>
+        <td>
+          ${hasGroup
+            ? `<span class="groupBadge">${grp}</span>`
+            : `<select class="suggestGroupSelect" id="grpSel_${sym}" onchange="assignGroup('${sym}', this.value)">
+                <option value="">— เลือกกลุ่ม —</option>
+                ${optionsHtml}
+               </select>`
+          }
+        </td>
+        <td>
+          ${hasGroup
+            ? `<span style="color:#22c55e;font-size:12px;">✅ OK</span>`
+            : `<span class="noGroupBadge">⚠️ ไม่มีกลุ่ม</span>`
+          }
+        </td>
+      </tr>`;
+  });
+}
+
+function assignGroup(symbol, group){
+  if(!group) return;
+  pendingGroupMap[symbol] = group;
+
+  // rerender เพื่ออัพเดต warning
+  renderSymbolPreview(pendingSymbols, pendingGroupMap,
+    document.getElementById("sourceTagEl").innerHTML.includes("SHEET") ? "sheet" : "default"
+  );
+}
+
+/* =========================================
+   APPLY & GO TO DASHBOARD
+   ========================================= */
+
+function applyAndGoDashboard(){
+  // สร้าง groups object จาก pendingGroupMap
+  const built = {};
+  pendingSymbols.forEach(sym => {
+    const grp = pendingGroupMap[sym];
+    if(!grp) return;
+    if(!built[grp]) built[grp] = [];
+    built[grp].push(sym);
+  });
+
+  // ใส่ใน activeGroups
+  activeGroups = built;
+
+  // switch tab แล้ว load
+  switchTab("dashboard");
+  load();
+}
+
+/* =========================================
+   MAIN LOAD (ใช้ activeGroups หรือ DEFAULT)
+   ========================================= */
+
+// ไม่ auto-load dashboard — เปิด Manage Symbols tab ก่อน
+// switchTab เริ่มต้นที่ manage แล้ว (active อยู่แล้วใน HTML)
 
 </script>
 
