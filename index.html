@@ -2021,11 +2021,11 @@ async function loadFromSheet(){
     // parse CSV
     const activeSymbols = parseCSVColumn(activeText, 0).filter(s => s && s !== "symbol");
 
-    const groupMap = {}; // symbol -> group_name (emoji version)
+    const groupMap = {};
     parseCSVRows(groupText).forEach(row => {
-      if(!row[0] || row[0]==="symbol") return;
-      const sym   = row[0].trim().toUpperCase();
-      const grp   = (row[1]||"").trim();
+      const sym = row[0].trim().replace(/\r/g,"").toUpperCase();
+      const grp = (row[1]||"").trim().replace(/\r/g,"");
+      if(!sym || !grp) return;
       // ถ้ามี emoji ให้เก็บทับเสมอ (ใช้ emoji version)
       if(!groupMap[sym] || /\p{Emoji}/u.test(grp)){
         groupMap[sym] = grp;
@@ -2039,7 +2039,7 @@ async function loadFromSheet(){
       return;
     }
 
-    statusEl.innerHTML = `✅ โหลดสำเร็จ: ${activeSymbols.length} symbols`;
+    statusEl.innerHTML = `✅ โหลดสำเร็จ: ${activeSymbols.length} symbols, ${Object.keys(groupMap).length} groups mapped`;
     renderSymbolPreview(activeSymbols, groupMap, "sheet");
 
   }catch(err){
@@ -2052,16 +2052,16 @@ async function loadFromSheet(){
 }
 
 function parseCSVColumn(text, colIndex){
-  return text.split("\n").map(line => {
+  return text.split(/\r?\n/).map(line => {
     const parts = line.replace(/"/g,"").split(",");
-    return (parts[colIndex]||"").trim();
-  }).filter(Boolean);
+    return (parts[colIndex]||"").trim().replace(/\r/g,"");
+  }).filter(s => s && s.toLowerCase() !== "symbol");
 }
 
 function parseCSVRows(text){
-  return text.split("\n").map(line =>
-    line.replace(/"/g,"").split(",").map(s=>s.trim())
-  ).filter(r => r.length >= 2);
+  return text.split(/\r?\n/).map(line =>
+    line.replace(/"/g,"").split(",").map(s => s.trim().replace(/\r/g,""))
+  ).filter(r => r.length >= 2 && r[0] && r[0].toLowerCase() !== "symbol");
 }
 
 /* =========================================
