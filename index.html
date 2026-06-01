@@ -546,6 +546,87 @@ th{
   font-weight:bold;
 }
 
+.aiSuggestBox{
+  background:#0c1a2e;
+  border:1px solid #1e40af;
+  border-radius:10px;
+  padding:10px 14px;
+  margin-top:4px;
+  font-size:12px;
+}
+
+.aiSuggestTitle{
+  color:#60a5fa;
+  font-weight:bold;
+  margin-bottom:6px;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+
+.aiSuggestGroup{
+  display:inline-block;
+  padding:3px 10px;
+  border-radius:8px;
+  font-size:12px;
+  font-weight:bold;
+  cursor:pointer;
+  margin:3px 3px 3px 0;
+  border:1px solid transparent;
+  transition:all .15s;
+}
+
+.aiSuggestExist{
+  background:#1e3a5f;
+  color:#93c5fd;
+  border-color:#2563eb;
+}
+
+.aiSuggestExist:hover{
+  background:#2563eb;
+  color:white;
+}
+
+.aiSuggestNew{
+  background:#1a2e1a;
+  color:#86efac;
+  border-color:#16a34a;
+}
+
+.aiSuggestNew:hover{
+  background:#16a34a;
+  color:white;
+}
+
+.aiSuggestReason{
+  color:#94a3b8;
+  font-size:11px;
+  margin-top:5px;
+  line-height:1.4;
+}
+
+.aiAnalyzing{
+  color:#60a5fa;
+  font-size:11px;
+  font-style:italic;
+}
+
+.aiAnalyzeBtn{
+  background:#1d4ed8;
+  padding:4px 10px;
+  font-size:11px;
+  border-radius:6px;
+  cursor:pointer;
+  border:none;
+  color:white;
+  font-weight:bold;
+}
+
+.aiAnalyzeBtn:disabled{
+  opacity:.5;
+  cursor:not-allowed;
+}
+
 .groupBadge{
   display:inline-block;
   padding:3px 8px;
@@ -2043,12 +2124,12 @@ function renderSymbolPreview(symbols, groupMap, source){
 
   const noGroup = symbols.filter(s => !groupMap[s]);
 
-  // warning box
   if(noGroup.length > 0){
     warn.innerHTML = `
       <div class="warningBox">
-        ⚠️ <strong>พบ ${noGroup.length} หุ้นที่ยังไม่มีกลุ่ม</strong> — กรุณาเลือกกลุ่มให้ครบก่อนกด Apply<br/>
-        <small style="opacity:0.8;">หรือไปเพิ่มข้อมูลใน Google Sheet แล้ว Load ใหม่</small>
+        ⚠️ <strong>พบ ${noGroup.length} หุ้นที่ยังไม่มีกลุ่ม</strong>
+        — กด <strong>🤖 AI Suggest</strong> เพื่อให้ AI วิเคราะห์และแนะนำกลุ่ม<br/>
+        <small style="opacity:.8;">จากนั้นเลือกกลุ่มที่ต้องการ หรือนำชื่อกลุ่มใหม่ไปบันทึกใน Sheet แล้ว Load ใหม่</small>
       </div>`;
     applyBtn.disabled = true;
   } else {
@@ -2056,7 +2137,6 @@ function renderSymbolPreview(symbols, groupMap, source){
     applyBtn.disabled = false;
   }
 
-  // render rows
   tbody.innerHTML = "";
   symbols.forEach((sym, i) => {
     const grp = groupMap[sym];
@@ -2066,23 +2146,32 @@ function renderSymbolPreview(symbols, groupMap, source){
       `<option value="${g}" ${g===grp?"selected":""}>${g}</option>`
     ).join("");
 
+    // existing groups from current session
+    const existingGroups = [...new Set(Object.values(pendingGroupMap).filter(Boolean))];
+
     tbody.innerHTML += `
-      <tr>
+      <tr id="row_${sym}">
         <td style="color:#64748b;">${i+1}</td>
-        <td style="font-weight:bold;">${sym}</td>
+        <td style="font-weight:bold;color:${hasGroup?'white':'#fca5a5'}">${sym}</td>
         <td>
           ${hasGroup
             ? `<span class="groupBadge">${grp}</span>`
-            : `<select class="suggestGroupSelect" id="grpSel_${sym}" onchange="assignGroup('${sym}', this.value)">
-                <option value="">— เลือกกลุ่ม —</option>
-                ${optionsHtml}
-               </select>`
+            : `<div>
+                <select class="suggestGroupSelect" id="grpSel_${sym}" onchange="assignGroup('${sym}', this.value)">
+                  <option value="">— เลือกกลุ่ม —</option>
+                  ${optionsHtml}
+                </select>
+                <button class="aiAnalyzeBtn" id="aiBtn_${sym}" onclick="analyzeSymbolGroup('${sym}')" style="margin-left:6px;">
+                  🤖 AI Suggest
+                </button>
+               </div>
+               <div id="aiResult_${sym}"></div>`
           }
         </td>
         <td>
           ${hasGroup
             ? `<span style="color:#22c55e;font-size:12px;">✅ OK</span>`
-            : `<span class="noGroupBadge">⚠️ ไม่มีกลุ่ม</span>`
+            : `<span class="noGroupBadge" id="statusBadge_${sym}">⚠️ ไม่มีกลุ่ม</span>`
           }
         </td>
       </tr>`;
@@ -2093,10 +2182,147 @@ function assignGroup(symbol, group){
   if(!group) return;
   pendingGroupMap[symbol] = group;
 
-  // rerender เพื่ออัพเดต warning
-  renderSymbolPreview(pendingSymbols, pendingGroupMap,
-    document.getElementById("sourceTagEl").innerHTML.includes("SHEET") ? "sheet" : "default"
-  );
+  // อัพเดต badge และ warning โดยไม่ rerender ทั้งหมด
+  const statusBadge = document.getElementById("statusBadge_" + symbol);
+  if(statusBadge) statusBadge.innerHTML = "✅ OK";
+  if(statusBadge) statusBadge.className = "";
+  if(statusBadge) statusBadge.style.color = "#22c55e";
+
+  // ซ่อน aiResult
+  const aiResult = document.getElementById("aiResult_" + symbol);
+  if(aiResult) aiResult.innerHTML = "";
+
+  // เช็คว่าครบทุกตัวหรือยัง
+  const noGroup = pendingSymbols.filter(s => !pendingGroupMap[s]);
+  const applyBtn = document.getElementById("applySymbolsBtn");
+  const warn = document.getElementById("warningArea");
+  if(noGroup.length === 0){
+    warn.innerHTML = `<div class="infoBox">✅ หุ้นทุกตัวมีกลุ่มครบแล้ว พร้อม Apply</div>`;
+    applyBtn.disabled = false;
+  } else {
+    warn.innerHTML = `<div class="warningBox">⚠️ <strong>ยังเหลือ ${noGroup.length} หุ้นที่ไม่มีกลุ่ม</strong>: ${noGroup.join(", ")}</div>`;
+    applyBtn.disabled = true;
+  }
+}
+
+async function analyzeSymbolGroup(symbol){
+  const btn = document.getElementById("aiBtn_" + symbol);
+  const resultEl = document.getElementById("aiResult_" + symbol);
+  if(!btn || !resultEl) return;
+
+  btn.disabled = true;
+  btn.innerHTML = "⏳ Analyzing...";
+  resultEl.innerHTML = `<div class="aiSuggestBox"><span class="aiAnalyzing">🤖 AI กำลังวิเคราะห์ ${symbol}...</span></div>`;
+
+  // รายชื่อกลุ่มที่มีอยู่แล้ว
+  const existingGroups = [...new Set(
+    [...Object.values(pendingGroupMap).filter(Boolean), ...SUGGESTED_GROUPS]
+  )];
+
+  const prompt = `You are a stock market analyst. The user has a trading dashboard with these existing sector groups:
+${existingGroups.map(g => `- ${g}`).join("\n")}
+
+The stock ticker is: ${symbol}
+
+Task:
+1. Identify what company/sector ${symbol} belongs to
+2. Determine if it fits into any of the existing groups above
+3. If it fits an existing group, recommend which one (can be 1-2 options)
+4. If it does NOT fit any existing group well, suggest a NEW group name with an appropriate emoji prefix
+
+Respond ONLY in this exact JSON format (no markdown, no explanation outside JSON):
+{
+  "symbol": "${symbol}",
+  "company": "Company full name",
+  "sector": "brief sector description",
+  "fits_existing": true or false,
+  "existing_suggestions": ["group name if fits, else empty array"],
+  "new_group_suggestion": "🆕 New Group Name if needed, else null",
+  "reason": "1-2 sentence explanation in Thai language"
+}`;
+
+  try{
+    const response = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 1000,
+        messages: [{ role: "user", content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+    const rawText = data.content?.[0]?.text || "";
+
+    // parse JSON จาก response
+    let result;
+    try{
+      const cleaned = rawText.replace(/```json|```/g, "").trim();
+      result = JSON.parse(cleaned);
+    } catch(e){
+      throw new Error("ไม่สามารถ parse ผลลัพธ์จาก AI ได้");
+    }
+
+    // สร้าง suggestion UI
+    let html = `<div class="aiSuggestBox">
+      <div class="aiSuggestTitle">🤖 AI Analysis: ${result.company || symbol}</div>`;
+
+    if(result.fits_existing && result.existing_suggestions?.length > 0){
+      html += `<div style="margin-bottom:6px;color:#94a3b8;font-size:11px;">✅ เข้าได้กับกลุ่มที่มีอยู่:</div>`;
+      result.existing_suggestions.forEach(grp => {
+        html += `<button class="aiSuggestGroup aiSuggestExist"
+          onclick="selectAiGroup('${symbol}','${grp.replace(/'/g,"\\'")}')">
+          ${grp}
+        </button>`;
+      });
+    }
+
+    if(result.new_group_suggestion){
+      html += `<div style="margin-top:8px;margin-bottom:6px;color:#94a3b8;font-size:11px;">
+        ${result.fits_existing ? "หรือสร้างกลุ่มใหม่:" : "❌ ไม่เข้ากับกลุ่มที่มี — แนะนำกลุ่มใหม่:"}
+      </div>`;
+      html += `<button class="aiSuggestGroup aiSuggestNew"
+        onclick="selectAiGroup('${symbol}','${result.new_group_suggestion.replace(/'/g,"\\'")}')">
+        ✨ ${result.new_group_suggestion}
+      </button>
+      <small style="display:block;margin-top:4px;color:#64748b;font-size:10px;">
+        คัดลอกชื่อกลุ่มนี้ไปบันทึกใน Google Sheet แล้ว Load ใหม่
+      </small>`;
+    }
+
+    if(result.reason){
+      html += `<div class="aiSuggestReason">💡 ${result.reason}</div>`;
+    }
+
+    html += `</div>`;
+    resultEl.innerHTML = html;
+
+  } catch(err){
+    resultEl.innerHTML = `<div class="aiSuggestBox" style="border-color:#7f1d1d;">
+      <span style="color:#fca5a5;">❌ ${err.message}</span>
+    </div>`;
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = "🤖 AI Suggest";
+}
+
+function selectAiGroup(symbol, group){
+  // เซ็ต dropdown ให้ตรงกับที่ AI แนะนำ
+  const sel = document.getElementById("grpSel_" + symbol);
+  if(sel){
+    // ถ้ากลุ่มยังไม่มีใน options ให้เพิ่ม
+    const exists = [...sel.options].some(o => o.value === group);
+    if(!exists){
+      const opt = document.createElement("option");
+      opt.value = group;
+      opt.text = group + " (ใหม่)";
+      sel.appendChild(opt);
+    }
+    sel.value = group;
+  }
+  assignGroup(symbol, group);
 }
 
 /* =========================================
