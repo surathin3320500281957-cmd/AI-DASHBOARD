@@ -1973,58 +1973,28 @@ let activeGroups = null;
 async function loadFromSheet(){
   const btn = document.getElementById("loadSheetBtn");
   const statusEl = document.getElementById("symbolsStatusMsg");
-  const input = document.getElementById("sheetUrlInput").value.trim();
-
-  if(!input){
-    statusEl.innerHTML = "⚠️ กรุณากรอก URL หรือ Spreadsheet ID";
-    return;
-  }
-
-  let sheetId = input;
-  const match = input.match(/\/d\/([a-zA-Z0-9_-]+)/);
-  if(match) sheetId = match[1];
 
   btn.disabled = true;
   btn.innerHTML = "⏳ Loading...";
+  statusEl.innerHTML = "⏳ กำลังโหลดข้อมูลจาก Google Sheet...";
 
-  const activeUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=symbol_active`;
-
-  async function tryFetch(url, label){
-    const attempts = [
-      { name:"corsproxy.io", build: u => `https://corsproxy.io/?${encodeURIComponent(u)}` },
-      { name:"allorigins",   build: u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}` },
-    ];
-    for(const a of attempts){
-      statusEl.innerHTML = `⏳ กำลังโหลด ${label} ผ่าน ${a.name}...`;
-      try{
-        const res = await fetch(a.build(url), { signal: AbortSignal.timeout(10000) });
-        const text = await res.text();
-        if(res.ok && text && text.trim().length > 5){
-          console.log(`✅ ${label} loaded via ${a.name}, length=${text.length}`);
-          return text;
-        }
-      } catch(e){
-        console.warn(`⚠️ ${a.name} failed:`, e.message);
-      }
-    }
-    throw new Error(`โหลด ${label} ไม่สำเร็จ — ตรวจสอบว่า Sheet เปิด Public แล้ว`);
-  }
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbwl7RFvpaoY3sAclVKCZx-YVESWeEPEIHrIo-WlqVhkP-16Y7c4xXeNO757i81pBfb8/exec";
 
   try{
-    const activeText = await tryFetch(activeUrl, "symbol_active");
-    console.log("activeText sample:", activeText.slice(0, 300));
+    const res = await fetch(GAS_URL + "?sheet=symbol_active");
+    const json = await res.json();
 
-    // parse CSV — คอลัมน์ 0=symbol, 1=group_name
-    const rows = activeText.split(/\r?\n/)
-      .map(line => line.replace(/"/g,"").split(",").map(s => s.trim().replace(/\r/g,"")))
-      .filter(r => r[0] && r[0].toLowerCase() !== "symbol");
+    if(json.error){
+      throw new Error(json.error);
+    }
 
+    const rows = json.rows || [];
     const activeSymbols = [];
     const groupMap = {};
 
     rows.forEach(r => {
-      const sym = r[0].toUpperCase();
-      const grp = r[1] || "";
+      const sym = (r.symbol || "").trim().toUpperCase();
+      const grp = (r.group_name || "").trim();
       if(!sym) return;
       activeSymbols.push(sym);
       if(grp) groupMap[sym] = grp;
