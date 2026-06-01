@@ -1987,14 +1987,12 @@ async function loadFromSheet(){
   btn.disabled = true;
   btn.innerHTML = "⏳ Loading...";
 
-  // ใช้ export?format=csv ซึ่ง redirect ได้ดีกว่า gviz/tq
   const activeUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=symbol_active`;
-  const groupUrl  = `https://docs.google.com/spreadsheets/d/${sheetId}/export?format=csv&sheet=symbol_gruop`;
 
   async function tryFetch(url, label){
     const attempts = [
-      { name:"corsproxy.io",   build: u => `https://corsproxy.io/?${encodeURIComponent(u)}` },
-      { name:"allorigins",     build: u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}` },
+      { name:"corsproxy.io", build: u => `https://corsproxy.io/?${encodeURIComponent(u)}` },
+      { name:"allorigins",   build: u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}` },
     ];
     for(const a of attempts){
       statusEl.innerHTML = `⏳ กำลังโหลด ${label} ผ่าน ${a.name}...`;
@@ -2005,37 +2003,38 @@ async function loadFromSheet(){
           console.log(`✅ ${label} loaded via ${a.name}, length=${text.length}`);
           return text;
         }
-        console.warn(`⚠️ ${a.name} returned status=${res.status} len=${text.length}`);
       } catch(e){
         console.warn(`⚠️ ${a.name} failed:`, e.message);
       }
     }
-    throw new Error(`โหลด ${label} ไม่สำเร็จจากทุก proxy — เปิด F12 Console ดู error`);
+    throw new Error(`โหลด ${label} ไม่สำเร็จ — ตรวจสอบว่า Sheet เปิด Public แล้ว`);
   }
 
   try{
     const activeText = await tryFetch(activeUrl, "symbol_active");
-    const groupText  = await tryFetch(groupUrl,  "symbol_gruop");
+    console.log("activeText sample:", activeText.slice(0, 300));
 
-    console.log("activeText sample:", activeText.slice(0,200));
-    console.log("groupText sample:",  groupText.slice(0,200));
+    // parse CSV — คอลัมน์ 0=symbol, 1=group_name
+    const rows = activeText.split(/\r?\n/)
+      .map(line => line.replace(/"/g,"").split(",").map(s => s.trim().replace(/\r/g,"")))
+      .filter(r => r[0] && r[0].toLowerCase() !== "symbol");
 
-    const activeSymbols = parseCSVColumn(activeText, 0);
-    console.log("activeSymbols:", activeSymbols);
-
+    const activeSymbols = [];
     const groupMap = {};
-    parseCSVRows(groupText).forEach(row => {
-      const sym = row[0].trim().replace(/\r/g,"").toUpperCase();
-      const grp = (row[1]||"").trim().replace(/\r/g,"");
-      if(!sym || !grp) return;
-      if(!groupMap[sym] || /\p{Emoji}/u.test(grp)){
-        groupMap[sym] = grp;
-      }
+
+    rows.forEach(r => {
+      const sym = r[0].toUpperCase();
+      const grp = r[1] || "";
+      if(!sym) return;
+      activeSymbols.push(sym);
+      if(grp) groupMap[sym] = grp;
     });
+
+    console.log("activeSymbols:", activeSymbols);
     console.log("groupMap:", groupMap);
 
     if(activeSymbols.length === 0){
-      statusEl.innerHTML = "❌ ไม่พบข้อมูลใน sheet symbol_active — เปิด F12 Console ดูรายละเอียด";
+      statusEl.innerHTML = "❌ ไม่พบข้อมูลใน sheet symbol_active";
       btn.disabled = false; btn.innerHTML = "📥 Load Sheet";
       return;
     }
