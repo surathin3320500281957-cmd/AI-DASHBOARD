@@ -1,2186 +1,844 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>ULTIMATE TRADING DASHBOARD PRO V5.5</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SIGNAL MATRIX V2</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=Kanit:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-
-body{
-  background:#020617;
-  color:white;
-  font-family:Arial;
-  font-size:14px;
-  padding:10px;
-}
-
-.topHeader{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:12px;
-  flex-wrap:wrap;
-}
-
-h2{
-  font-size:22px;
-  margin-bottom:12px;
-}
-
-/* FEAR INDEX */
-
-.fearStatus{
-  min-width:250px;
-  padding:12px;
-  border-radius:14px;
-  text-align:center;
-  border:1px solid #1e293b;
-  font-weight:bold;
-  box-shadow:0 0 20px rgba(0,0,0,0.25);
-}
-
-.riskOn{
-  background:#052e16;
-  color:#22c55e;
-}
-
-.neutral{
-  background:#3f2a00;
-  color:#facc15;
-}
-
-.riskOff{
-  background:#450a0a;
-  color:#ef4444;
-}
-
-.fearLabel{
-  font-size:12px;
-  opacity:0.8;
-  margin-bottom:8px;
-}
-
-.gaugeWrap{
-  position:relative;
-  width:150px;
-  height:78px;
-  margin:auto;
-  overflow:hidden;
-}
-
-.gaugeHalf{
-  width:150px;
-  height:150px;
-  border-radius:50%;
-  background:
-  conic-gradient(
-    #22c55e 0deg 60deg,
-    #facc15 60deg 120deg,
-    #ef4444 120deg 180deg
-  );
-  position:absolute;
-  top:0;
-  left:0;
-}
-
-.gaugeInner{
-  width:118px;
-  height:118px;
-  background:#020617;
-  border-radius:50%;
-  position:absolute;
-  top:16px;
-  left:16px;
-}
-
-.gaugeNeedle{
-  position:absolute;
-  width:5px;
-  height:65px;
-  background:#38bdf8;
-  left:72px;
-  bottom:0;
-  transform-origin:bottom center;
-  transform:rotate(90deg);
-  border-radius:4px;
-  transition:transform 0.6s ease;
-  box-shadow:
-  0 0 10px #38bdf8,
-  0 0 20px rgba(56,189,248,0.7);
-}
-
-.gaugeCenter{
-  width:16px;
-  height:16px;
-  border-radius:50%;
-  background:#38bdf8;
-  position:absolute;
-  left:67px;
-  bottom:-2px;
-}
-
-.fearValue{
-  margin-top:8px;
-  font-size:22px;
-  font-weight:bold;
-}
-
-/* BUTTONS */
-
-.topBar{
-  display:flex;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-bottom:14px;
-}
-
-button{
-  border:none;
-  padding:10px 14px;
-  border-radius:10px;
-  cursor:pointer;
-  font-weight:bold;
-  font-size:14px;
-  color:white;
-}
-
-#refreshBtn{
-  background:#16a34a;
-}
-
-#exportBtn{
-  background:#2563eb;
-}
-
-#exportTextBtn{
-  background:#7c3aed;
-}
-
-/* MARKET MODE */
-
-.marketModeBar{
-  margin-top:12px;
-  margin-bottom:16px;
-  padding:14px;
-  border-radius:12px;
-  border:1px solid #1e293b;
-  background:#0f172a;
-}
-
-.marketModeTitle{
-  font-size:12px;
-  opacity:0.7;
-  margin-bottom:8px;
-}
-
-.marketModeValue{
-  font-size:22px;
-  font-weight:bold;
-}
-
-.marketBull{
-  color:#22c55e;
-}
-
-.marketNeutral{
-  color:#facc15;
-}
-
-.marketBear{
-  color:#ef4444;
-}
-
-/* FEAR TREND */
-
-.fearTrendPanel{
-  margin-top:14px;
-  margin-bottom:16px;
-  padding:14px;
-  border-radius:12px;
-  background:#0f172a;
-  border:1px solid #1e293b;
-}
-
-.fearTrendTitle{
-  font-size:12px;
-  opacity:0.7;
-  margin-bottom:8px;
-}
-
-.fearTrendValue{
-  font-size:20px;
-  font-weight:bold;
-}
-
-/* BREADTH */
-
-.marketBreadthPanel{
-  margin-top:14px;
-  margin-bottom:16px;
-  padding:14px;
-  border-radius:12px;
-  background:#0f172a;
-  border:1px solid #1e293b;
-}
-
-.marketBreadthTitle{
-  font-size:12px;
-  opacity:0.7;
-  margin-bottom:10px;
-}
-
-.breadthGrid{
-  display:grid;
-  grid-template-columns:
-  repeat(auto-fit,minmax(180px,1fr));
-  gap:12px;
-}
-
-.breadthCard{
-  background:#111827;
-  padding:12px;
-  border-radius:10px;
-  border:1px solid #1e293b;
-}
-
-.breadthLabel{
-  font-size:12px;
-  opacity:0.7;
-  margin-bottom:6px;
-}
-
-.breadthValue{
-  font-size:24px;
-  font-weight:bold;
-}
-
-/* STATUS */
-
-#statusMsg{
-  margin-top:8px;
-  margin-bottom:8px;
-  color:#facc15;
-  font-weight:bold;
-}
-
-#lastUpdate{
-  margin-bottom:14px;
-  color:#94a3b8;
-}
-
-/* TABLE */
-
-table{
-  width:100%;
-  border-collapse:collapse;
-}
-
-th, td{
-  padding:8px;
-  text-align:center;
-  font-size:14px;
-}
-
-th{
-  background:#0f172a;
-  position:sticky;
-  top:0;
-}
-
-.group{
-  background:#1e293b;
-  font-weight:bold;
-}
-
-.buy{
-  color:#22c55e;
-  font-weight:bold;
-}
-
-.sell{
-  color:#ef4444;
-  font-weight:bold;
-}
-
-.wait{
-  color:#facc15;
-  font-weight:bold;
-}
-
-.up{
-  color:#22c55e;
-}
-
-.down{
-  color:#ef4444;
-}
-
-.side{
-  color:#facc15;
-}
-
-.cool{
-  color:#22c55e;
-}
-
-.hot{
-  color:#facc15;
-}
-
-.extreme{
-  color:#ef4444;
-}
-
-.confA{
-  color:#22c55e;
-}
-
-.confB{
-  color:#facc15;
-}
-
-.confC{
-  color:#ef4444;
-}
-
-.volHigh{
-  color:#22c55e;
-}
-
-.volMid{
-  color:#facc15;
-}
-
-.volLow{
-  color:#ef4444;
-}
-
-.riskLow{
-  color:#22c55e;
-}
-
-.riskMid{
-  color:#facc15;
-}
-
-.riskHigh{
-  color:#ef4444;
-}
-
-.tag{
-  display:inline-block;
-  padding:4px 8px;
-  border-radius:8px;
-  font-size:11px;
-  font-weight:bold;
-}
-
-.tagLeader{
-  background:#14532d;
-  color:#86efac;
-}
-
-.tagMomentum{
-  background:#172554;
-  color:#93c5fd;
-}
-
-.tagWatch{
-  background:#3f2a00;
-  color:#fde68a;
-}
-
-.leaderRow{
-  background:rgba(34,197,94,0.08);
-}
-
-.momentumRow{
-  background:rgba(59,130,246,0.08);
-}
-
+:root{
+  --bg:#060C12;--s1:#0C1820;--s2:#112030;
+  --border:rgba(0,255,178,0.10);
+  --acc:#00FFB2;--acc2:#29B6F6;--tp:#FF6B35;--warn:#FFC107;--danger:#F44336;
+  --muted:#7ABFAA;--text:#F5FFFC;
+  --mono:'IBM Plex Mono',monospace;--thai:'Kanit',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--thai);min-height:100vh;overflow-x:hidden;}
+body::before{content:'';position:fixed;inset:0;
+  background-image:linear-gradient(rgba(0,255,178,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,178,.02) 1px,transparent 1px);
+  background-size:44px 44px;pointer-events:none;z-index:0;}
+.app{position:relative;z-index:1;}
+ 
+/* HEADER */
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;
+  border-bottom:1px solid var(--border);background:rgba(6,12,18,.96);
+  backdrop-filter:blur(20px);position:sticky;top:0;z-index:200;}
+.logo{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--acc);letter-spacing:2px;}
+.logo-sub{font-family:var(--mono);font-size:9px;letter-spacing:4px;color:var(--muted);margin-top:2px;}
+.hdr-r{display:flex;align-items:center;gap:14px;}
+.live{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--acc);}
+.ldot{width:6px;height:6px;border-radius:50%;background:var(--acc);animation:blink 1.4s infinite;}
+@keyframes blink{0%,100%{opacity:1;box-shadow:0 0 6px var(--acc);}50%{opacity:.3;box-shadow:none;}}
+.clk{font-family:var(--mono);font-size:10px;color:var(--muted);}
+ 
+/* STATUS BAR */
+.status-bar{background:rgba(0,255,178,.04);border-bottom:1px solid rgba(0,255,178,.12);
+  padding:9px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.status-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:#8FCFBA;text-transform:uppercase;}
+.status-val{font-family:var(--mono);font-size:11px;font-weight:600;}
+.status-val.ok{color:var(--acc);}.status-val.err{color:var(--danger);}.status-val.loading{color:var(--warn);}
+.refresh-btn{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  padding:6px 14px;border:1px solid var(--acc);background:rgba(0,255,178,.08);
+  color:var(--acc);border-radius:3px;cursor:pointer;transition:all .15s;margin-left:auto;}
+.refresh-btn:hover{background:rgba(0,255,178,.2);}
+.refresh-btn:disabled{opacity:.4;cursor:not-allowed;}
+ 
 /* TABS */
-.tabBar{
-  display:flex;
-  gap:4px;
-  margin-bottom:16px;
-  border-bottom:2px solid #1e293b;
-  padding-bottom:0;
-}
-
-.tabBtn{
-  padding:10px 20px;
-  border:none;
-  background:transparent;
-  color:#64748b;
-  font-size:14px;
-  font-weight:bold;
-  cursor:pointer;
-  border-bottom:3px solid transparent;
-  margin-bottom:-2px;
-  border-radius:8px 8px 0 0;
-  transition:all 0.2s;
-}
-
-.tabBtn:hover{
-  color:#94a3b8;
-  background:#0f172a;
-}
-
-.tabBtn.active{
-  color:#38bdf8;
-  border-bottom:3px solid #38bdf8;
-  background:#0f172a;
-}
-
-.tabContent{
-  display:none;
-}
-
-.tabContent.active{
-  display:block;
-}
-
-/* MANAGE SYMBOLS */
-.managePanel{
-  background:#0f172a;
-  border:1px solid #1e293b;
-  border-radius:12px;
-  padding:16px;
-  margin-bottom:16px;
-}
-
-.managePanelTitle{
-  font-size:13px;
-  color:#64748b;
-  margin-bottom:12px;
-  text-transform:uppercase;
-  letter-spacing:1px;
-}
-
-.sheetUrlRow{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-bottom:12px;
-  align-items:center;
-}
-
-.sheetUrlInput{
-  flex:1;
-  min-width:200px;
-  padding:8px 12px;
-  background:#020617;
-  border:1px solid #334155;
-  border-radius:8px;
-  color:white;
-  font-size:13px;
-}
-
-.sheetUrlInput:focus{
-  outline:none;
-  border-color:#38bdf8;
-}
-
-#loadSheetBtn{
-  background:#0284c7;
-}
-
-#loadSheetBtn:disabled{
-  opacity:0.5;
-  cursor:not-allowed;
-}
-
-#useDefaultBtn{
-  background:#475569;
-}
-
-#applySymbolsBtn{
-  background:#16a34a;
-}
-
-#applySymbolsBtn:disabled{
-  opacity:0.4;
-  cursor:not-allowed;
-}
-
-.symbolsStatusMsg{
-  font-size:13px;
-  color:#facc15;
-  margin-bottom:10px;
-  min-height:20px;
-}
-
-/* SYMBOL TABLE */
-.symbolTable{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:8px;
-  font-size:13px;
-}
-
-.symbolTable th{
-  background:#1e293b;
-  padding:8px 10px;
-  text-align:left;
-  position:sticky;
-  top:0;
-}
-
-.symbolTable td{
-  padding:7px 10px;
-  text-align:left;
-  border-bottom:1px solid #1e293b;
-}
-
-.symbolTable tr:hover td{
-  background:#1e293b44;
-}
-
-.noGroupBadge{
-  display:inline-block;
-  padding:3px 8px;
-  background:#450a0a;
-  color:#fca5a5;
-  border-radius:6px;
-  font-size:11px;
-  font-weight:bold;
-}
-
-.aiSuggestBox{
-  background:#0c1a2e;
-  border:1px solid #1e40af;
-  border-radius:10px;
-  padding:10px 14px;
-  margin-top:4px;
-  font-size:12px;
-}
-
-.aiSuggestTitle{
-  color:#60a5fa;
-  font-weight:bold;
-  margin-bottom:6px;
-  font-size:11px;
-  text-transform:uppercase;
-  letter-spacing:.5px;
-}
-
-.aiSuggestGroup{
-  display:inline-block;
-  padding:3px 10px;
-  border-radius:8px;
-  font-size:12px;
-  font-weight:bold;
-  cursor:pointer;
-  margin:3px 3px 3px 0;
-  border:1px solid transparent;
-  transition:all .15s;
-}
-
-.aiSuggestExist{
-  background:#1e3a5f;
-  color:#93c5fd;
-  border-color:#2563eb;
-}
-
-.aiSuggestExist:hover{
-  background:#2563eb;
-  color:white;
-}
-
-.aiSuggestNew{
-  background:#1a2e1a;
-  color:#86efac;
-  border-color:#16a34a;
-}
-
-.aiSuggestNew:hover{
-  background:#16a34a;
-  color:white;
-}
-
-.aiSuggestReason{
-  color:#94a3b8;
-  font-size:11px;
-  margin-top:5px;
-  line-height:1.4;
-}
-
-.aiAnalyzing{
-  color:#60a5fa;
-  font-size:11px;
-  font-style:italic;
-}
-
-.aiAnalyzeBtn{
-  background:#1d4ed8;
-  padding:4px 10px;
-  font-size:11px;
-  border-radius:6px;
-  cursor:pointer;
-  border:none;
-  color:white;
-  font-weight:bold;
-}
-
-.aiAnalyzeBtn:disabled{
-  opacity:.5;
-  cursor:not-allowed;
-}
-
-.groupBadge{
-  display:inline-block;
-  padding:3px 8px;
-  background:#172554;
-  color:#93c5fd;
-  border-radius:6px;
-  font-size:11px;
-}
-
-.suggestGroupSelect{
-  background:#0f172a;
-  border:1px solid #334155;
-  color:white;
-  padding:4px 8px;
-  border-radius:6px;
-  font-size:12px;
-  cursor:pointer;
-}
-
-.warningBox{
-  background:#3f2a00;
-  border:1px solid #854d0e;
-  border-radius:10px;
-  padding:12px 16px;
-  margin-bottom:12px;
-  color:#fde68a;
-  font-size:13px;
-}
-
-.infoBox{
-  background:#052e16;
-  border:1px solid #166534;
-  border-radius:10px;
-  padding:12px 16px;
-  margin-bottom:12px;
-  color:#86efac;
-  font-size:13px;
-}
-
-.sourceTag{
-  display:inline-block;
-  padding:2px 8px;
-  border-radius:6px;
-  font-size:11px;
-  font-weight:bold;
-  margin-left:8px;
-}
-
-.sourceSheet{
-  background:#1e3a5f;
-  color:#7dd3fc;
-}
-
-.sourceDefault{
-  background:#1e293b;
-  color:#94a3b8;
-}
-
+.tab-bar{display:flex;gap:0;border-bottom:1px solid var(--border);background:rgba(6,12,18,.9);
+  padding:0 24px;position:sticky;top:53px;z-index:190;}
+.tab-btn{font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;
+  padding:12px 20px;border:none;background:transparent;color:var(--muted);
+  cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;}
+.tab-btn.active{color:var(--acc);border-bottom-color:var(--acc);}
+.tab-btn:hover{color:var(--text);}
+.tab-content{display:none;}.tab-content.active{display:block;}
+ 
+/* UPLOAD BAR */
+.upload-bar{padding:8px 24px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  border-bottom:1px solid rgba(255,255,255,.04);}
+.upload-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:#8FCFBA;text-transform:uppercase;}
+.upload-btn{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  padding:5px 12px;border:1px solid var(--border);background:transparent;
+  color:#8FCFBA;border-radius:3px;cursor:pointer;transition:all .15s;}
+.upload-btn:hover{border-color:var(--acc2);color:var(--acc2);}
+#fileInput{display:none;}
+.upload-msg{font-family:var(--mono);font-size:10px;color:#8FCFBA;}
+.upload-msg b{color:var(--acc2);}
+ 
+main{padding:20px 24px;max-width:1680px;margin:0 auto;}
+.sec{font-family:var(--mono);font-size:9px;letter-spacing:4px;color:#8FCFBA;
+  text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:10px;}
+.sec::after{content:'';flex:1;height:1px;background:var(--border);}
+.div{height:1px;background:linear-gradient(90deg,transparent,rgba(0,255,178,.2),transparent);margin:18px 0;}
+ 
+/* ALERT SUMMARY TABLE */
+.alert-summary{background:var(--s1);border:1px solid rgba(255,193,7,.2);border-radius:6px;
+  margin-bottom:18px;overflow:hidden;}
+.alert-summary-hdr{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;border-bottom:1px solid rgba(255,255,255,.06);}
+.alert-summary-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--warn);text-transform:uppercase;}
+.alert-summary-count{font-family:var(--mono);font-size:10px;color:var(--muted);}
+.alert-row{display:grid;grid-template-columns:70px 1fr auto;gap:12px;align-items:center;
+  padding:9px 16px;border-bottom:1px solid rgba(255,255,255,.03);}
+.alert-row:last-child{border-bottom:none;}
+.alert-sym{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--text);}
+.alert-change{font-family:var(--mono);font-size:11px;}
+.alert-time{font-family:var(--mono);font-size:9px;color:var(--muted);}
+.no-alerts{padding:12px 16px;font-family:var(--mono);font-size:10px;color:var(--muted);text-align:center;}
+ 
+/* KPI */
+.kpi-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;}
+.kpi{background:var(--s1);border:1px solid var(--border);border-radius:6px;padding:14px 16px;position:relative;overflow:hidden;}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.kpi.g::before{background:var(--acc)}.kpi.b::before{background:var(--acc2)}.kpi.o::before{background:var(--tp)}.kpi.w::before{background:var(--warn)}.kpi.r::before{background:var(--danger)}
+.kpi-lbl{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:#8FCFBA;text-transform:uppercase;margin-bottom:7px;}
+.kpi-val{font-family:var(--mono);font-size:26px;font-weight:700;line-height:1;margin-bottom:4px;}
+.kpi.g .kpi-val{color:var(--acc)}.kpi.b .kpi-val{color:var(--acc2)}.kpi.o .kpi-val{color:var(--tp)}.kpi.w .kpi-val{color:var(--warn)}.kpi.r .kpi-val{color:var(--danger)}
+.kpi-sub{font-family:var(--mono);font-size:10px;color:#8FCFBA;}
+ 
+/* RANK CARDS */
+.rank-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.rcard{background:var(--s1);border:1px solid var(--border);border-radius:8px;
+  display:grid;grid-template-columns:54px 180px 1fr 300px 104px;
+  gap:0 14px;align-items:center;padding:14px 18px;transition:border-color .2s;}
+.rcard:hover{border-color:rgba(0,255,178,.25);}
+.rcard.r1{border-color:rgba(255,193,7,.3)}.rcard.r2{border-color:rgba(176,176,176,.2)}.rcard.r3{border-color:rgba(205,127,50,.2)}
+.c-rank{text-align:center;}
+.rnum{font-family:var(--mono);font-size:22px;font-weight:700;}
+.r1 .rnum{color:#FFC107}.r2 .rnum{color:#B0B0B0}.r3 .rnum{color:#CD7F32}
+.rnum.dim{color:var(--muted);font-size:17px;}
+.medal{font-size:17px;display:block;line-height:1;margin-bottom:2px;}
+.c-info .sym{font-family:var(--mono);font-size:19px;font-weight:700;color:var(--text);letter-spacing:1px;}
+.c-info .grp{font-family:var(--mono);font-size:9px;color:#8FCFBA;margin-top:3px;}
+.c-info .act{margin-top:7px;}
+.break-title{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:#8FCFBA;text-transform:uppercase;margin-bottom:7px;}
+.brows{display:flex;flex-direction:column;gap:5px;}
+.brow{display:flex;align-items:center;gap:7px;}
+.blbl{font-family:var(--mono);font-size:10px;color:#8FCFBA;width:48px;text-align:right;flex-shrink:0;}
+.btrack{flex:1;height:6px;background:rgba(255,255,255,.06);border-radius:3px;overflow:hidden;min-width:60px;}
+.bfill{height:100%;border-radius:3px;}
+.bval{font-family:var(--mono);font-size:10px;font-weight:700;width:44px;text-align:right;flex-shrink:0;}
+.chip{font-family:var(--mono);font-size:11px;font-weight:600;padding:4px 10px;border-radius:3px;border:1px solid;display:inline-block;}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px;}
+.pricebox{font-family:var(--mono);font-size:10px;color:#8FCFBA;margin-top:5px;}
+.pricebox b{font-size:12px;color:var(--text);}
+.c-score{text-align:right;}
+.score-lbl{font-family:var(--mono);font-size:8px;letter-spacing:2px;color:#8FCFBA;text-transform:uppercase;margin-bottom:4px;}
+.score-val{font-family:var(--mono);font-size:32px;font-weight:700;line-height:1;margin-bottom:3px;}
+.score-sub{font-family:var(--mono);font-size:10px;color:#8FCFBA;}
+.grade{display:inline-block;margin-top:6px;font-family:var(--mono);font-size:10px;font-weight:700;padding:3px 10px;border-radius:3px;}
+.ap{padding:3px 9px;border-radius:3px;font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:1px;}
+.ap-BUY{background:rgba(0,255,178,.12);color:var(--acc);border:1px solid rgba(0,255,178,.3);}
+.ap-TP{background:rgba(255,107,53,.12);color:var(--tp);border:1px solid rgba(255,107,53,.3);}
+.ap-W{background:rgba(255,193,7,.1);color:var(--warn);border:1px solid rgba(255,193,7,.25);}
+ 
+/* ENTRY/EXIT BOX */
+.ebox{display:flex;flex-direction:column;gap:4px;margin-top:8px;
+  padding:8px 10px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:4px;}
+.ebox-row{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;}
+.elbl{color:#8FCFBA;width:52px;flex-shrink:0;font-size:9px;letter-spacing:1px;}
+.eval{color:var(--text);}
+.eval small{color:var(--muted);font-size:8px;}
+ 
+/* FILTER */
+.fbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.fb{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;
+  padding:6px 12px;border:1px solid var(--border);background:transparent;
+  color:var(--muted);border-radius:3px;cursor:pointer;transition:all .15s;}
+.fb:hover,.fb.on{border-color:var(--acc);color:var(--acc);background:rgba(0,255,178,.06);}
+ 
+/* TIMELINE */
+.tl-wrap{overflow-x:auto;}
+.tl-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px;white-space:nowrap;}
+.tl-table th{text-align:left;padding:8px 12px;font-size:9px;letter-spacing:2px;color:#8FCFBA;
+  text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:600;}
+.tl-table td{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.03);font-size:11px;color:#C8EEE6;}
+.tl-table tbody tr:hover{background:rgba(0,255,178,.03);}
+ 
+/* SYM FILTER */
+.sym-filter-bar{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.sfb{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:4px 10px;
+  border:1px solid var(--border);background:transparent;color:var(--muted);
+  border-radius:3px;cursor:pointer;transition:all .15s;}
+.sfb:hover,.sfb.on{border-color:var(--acc);color:var(--acc);background:rgba(0,255,178,.06);}
+#symSearch{font-family:var(--mono);font-size:10px;padding:5px 12px;background:rgba(255,255,255,.05);
+  border:1px solid var(--border);color:var(--text);border-radius:3px;outline:none;width:150px;}
+ 
+/* ===================== TAB 2: PORTFOLIO ===================== */
+.port-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.port-kpi{background:var(--s1);border:1px solid var(--border);border-radius:6px;padding:14px 16px;}
+.port-kpi-lbl{font-family:var(--mono);font-size:8px;letter-spacing:3px;color:#8FCFBA;text-transform:uppercase;margin-bottom:6px;}
+.port-kpi-val{font-family:var(--mono);font-size:24px;font-weight:700;line-height:1;}
+ 
+.port-table-wrap{overflow-x:auto;}
+.port-table{width:100%;border-collapse:collapse;font-family:var(--mono);}
+.port-table th{text-align:left;padding:10px 14px;font-size:9px;letter-spacing:2px;color:#8FCFBA;
+  text-transform:uppercase;border-bottom:1px solid var(--border);font-weight:600;white-space:nowrap;}
+.port-table td{padding:12px 14px;border-bottom:1px solid rgba(255,255,255,.04);white-space:nowrap;vertical-align:middle;}
+.port-table tbody tr:hover{background:rgba(0,255,178,.03);}
+.port-sym{font-family:var(--mono);font-size:14px;font-weight:700;color:var(--text);}
+.port-grp{font-size:9px;color:var(--muted);margin-top:2px;}
+.action-tag{padding:4px 10px;border-radius:3px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:1px;display:inline-block;}
+.at-add{background:rgba(0,255,178,.15);color:var(--acc);border:1px solid rgba(0,255,178,.3);}
+.at-hold{background:rgba(255,193,7,.1);color:var(--warn);border:1px solid rgba(255,193,7,.25);}
+.at-partial{background:rgba(255,107,53,.12);color:var(--tp);border:1px solid rgba(255,107,53,.3);}
+.at-sell{background:rgba(244,67,54,.15);color:var(--danger);border:1px solid rgba(244,67,54,.3);}
+ 
+/* ALERT POPUP */
+.alert-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:999;display:flex;align-items:center;justify-content:center;}
+.alert-box{background:var(--s1);border:1px solid var(--acc);border-radius:10px;padding:22px 26px;max-width:460px;width:90%;box-shadow:0 0 40px rgba(0,255,178,.2);}
+.alert-title{font-family:var(--mono);font-size:11px;letter-spacing:3px;color:var(--acc);text-transform:uppercase;margin-bottom:14px;}
+.alert-items{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.alert-item{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:11px 13px;display:flex;align-items:center;gap:12px;}
+.alert-sym2{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--text);width:52px;}
+.alert-change{flex:1;font-family:var(--mono);font-size:11px;}
+.alert-close{width:100%;padding:10px;background:rgba(0,255,178,.12);border:1px solid rgba(0,255,178,.3);color:var(--acc);font-family:var(--mono);font-size:11px;letter-spacing:2px;border-radius:5px;cursor:pointer;transition:all .15s;}
+.alert-close:hover{background:rgba(0,255,178,.25);}
+ 
+/* LOADING */
+.loading-wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 20px;gap:14px;}
+.spinner{width:32px;height:32px;border:2px solid rgba(0,255,178,.2);border-top-color:var(--acc);border-radius:50%;animation:spin 1s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading-txt{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:2px;}
+ 
+::-webkit-scrollbar{width:3px;height:3px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border);}
+ 
+@media(max-width:1100px){.rcard{grid-template-columns:44px 140px 1fr;}.c-chips,.c-score{display:none;}.port-summary{grid-template-columns:repeat(2,1fr);}  .kpi-row{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:700px){.kpi-row{grid-template-columns:repeat(2,1fr);}main{padding:14px;}
+  .rcard{grid-template-columns:36px 1fr;}.c-break{display:none;}.port-summary{grid-template-columns:repeat(2,1fr);}}
 </style>
 </head>
-
 <body>
-
-<div class="tabBar">
-  <button class="tabBtn" id="tabDashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
-  <button class="tabBtn active" id="tabManage" onclick="switchTab('manage')">⚙️ Manage Symbols</button>
-</div>
-
-<div id="contentDashboard" class="tabContent">
-
-<div class="topHeader">
-
-<h2>
-📊 ULTIMATE TRADING DASHBOARD PRO V5.5
-</h2>
-
-<div id="fearStatus" class="fearStatus neutral">
-
-<div class="fearLabel">
-MARKET FEAR INDEX
-</div>
-
-<div class="gaugeWrap">
-
-<div class="gaugeHalf"></div>
-
-<div class="gaugeInner"></div>
-
-<div id="gaugeNeedle" class="gaugeNeedle"></div>
-
-<div class="gaugeCenter"></div>
-
-</div>
-
-<div id="fearValue" class="fearValue">
-50
-</div>
-
-<div id="fearText">
-🟡 NEUTRAL
-</div>
-
-</div>
-
-</div>
-
-<div class="topBar">
-
-<button id="refreshBtn" onclick="load()">
-🔄 Refresh
-</button>
-
-<button id="exportBtn" onclick="exportCSV()">
-📥 Export CSV
-</button>
-
-<button id="exportTextBtn" onclick="exportText()">
-📝 Export Text
-</button>
-
-</div>
-
-<div class="marketModeBar">
-
-<div class="marketModeTitle">
-SMART MARKET MODE
-</div>
-
-<div id="marketModeValue"
-class="marketModeValue marketNeutral">
-🟡 BALANCED
-</div>
-
-</div>
-
-<div class="fearTrendPanel">
-
-<div class="fearTrendTitle">
-FEAR TREND ENGINE
-</div>
-
-<div id="fearTrendValue"
-class="fearTrendValue">
-🟡 STABLE
-</div>
-
-</div>
-
-<div class="marketBreadthPanel">
-
-<div class="marketBreadthTitle">
-MARKET BREADTH ENGINE
-</div>
-
-<div class="breadthGrid">
-
-<div class="breadthCard">
-<div class="breadthLabel">
-🟢 BULLISH COUNT
-</div>
-<div id="bullCount"
-class="breadthValue">
-0
-</div>
-</div>
-
-<div class="breadthCard">
-<div class="breadthLabel">
-🔴 BEARISH COUNT
-</div>
-<div id="bearCount"
-class="breadthValue">
-0
-</div>
-</div>
-
-<div class="breadthCard">
-<div class="breadthLabel">
-🔥 EXTREME HEAT
-</div>
-<div id="heatCount"
-class="breadthValue">
-0
-</div>
-</div>
-
-<div class="breadthCard">
-<div class="breadthLabel">
-🏆 LEADER COUNT
-</div>
-<div id="leaderCount"
-class="breadthValue">
-0
-</div>
-</div>
-
-</div>
-
-</div>
-
-<div id="statusMsg"></div>
-
-<div id="lastUpdate"></div>
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Rank</th>
-<th>Symbol</th>
-<th>Leader Tag</th>
-<th>Signal</th>
-<th>Trend</th>
-<th>Action</th>
-<th>RSI</th>
-<th>Heat</th>
-<th>Confidence</th>
-<th>Smart Rank</th>
-<th>Volume</th>
-<th>Risk</th>
-<th>Score</th>
-<th>Price</th>
-<th>EMA20</th>
-<th>EMA50</th>
-<th>Momentum</th>
-<th>News</th>
-
-</tr>
-
-</thead>
-
-<tbody id="tb"></tbody>
-
-</table>
-
-<!-- END contentDashboard -->
-</div>
-
-<!-- MANAGE SYMBOLS TAB -->
-<div id="contentManage" class="tabContent active">
-
-<div class="managePanel">
-  <div class="managePanelTitle">📡 Google Sheet Connection</div>
-  <div class="sheetUrlRow">
-    <input class="sheetUrlInput" id="sheetUrlInput"
-      placeholder="วาง Google Sheet URL หรือ Spreadsheet ID ที่นี่..."
-      value="1D_gdl4a8euUbfEy5OY_Wbk4QgFNiGpFagGJ_KBRrpFo"
-    />
-    <button id="loadSheetBtn" onclick="loadFromSheet()">📥 Load Sheet</button>
-    <button id="useDefaultBtn" onclick="useDefaultSymbols()">🏠 Default Stocks</button>
+<div class="app">
+ 
+<header>
+  <div>
+    <div class="logo">SIGNAL MATRIX <span style="font-size:10px;color:var(--muted)">V2</span></div>
+    <div class="logo-sub">GOOGLE SHEETS · LIVE · AUTO-UPDATE</div>
   </div>
-  <div class="symbolsStatusMsg" id="symbolsStatusMsg">
-    💡 กด "Load Sheet" เพื่อโหลดหุ้นจาก Google Sheet หรือ "Default Stocks" เพื่อใช้หุ้นเดิม
+  <div class="hdr-r">
+    <div class="live"><div class="ldot"></div>LIVE</div>
+    <div class="clk" id="clk"></div>
   </div>
+</header>
+ 
+<div class="status-bar">
+  <span class="status-lbl">Data Source</span>
+  <span class="status-val ok" id="sheetStatus">Google Sheets · stock_history</span>
+  <span class="status-lbl" style="margin-left:10px">Records</span>
+  <span class="status-val ok" id="recordCount">—</span>
+  <span class="status-lbl" style="margin-left:10px">Updated</span>
+  <span class="status-val" id="lastUpdated" style="color:var(--muted)">—</span>
+  <button class="refresh-btn" id="refreshBtn" onclick="loadFromSheet()">↻ Refresh</button>
 </div>
-
-<div id="warningArea"></div>
-
-<div class="managePanel" id="symbolPreviewPanel" style="display:none;">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
-    <div class="managePanelTitle" style="margin:0;">
-      📋 Symbol Preview
-      <span id="sourceTagEl" class="sourceTag sourceSheet">📡 FROM SHEET</span>
+ 
+<div class="upload-bar">
+  <span class="upload-lbl">Append CSV</span>
+  <button class="upload-btn" onclick="document.getElementById('fileInput').click()">📂 เลือกไฟล์ CSV</button>
+  <input type="file" id="fileInput" accept=".csv" multiple onchange="handleUpload(this.files)">
+  <span class="upload-msg" id="uploadMsg">เลือก dashboard_export_*.csv ใหม่ → append เข้า Sheet อัตโนมัติ</span>
+</div>
+ 
+<!-- TABS -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="switchTab('signal')">Signal Matrix</button>
+  <button class="tab-btn" onclick="switchTab('portfolio')">Portfolio</button>
+</div>
+ 
+<!-- TAB 1: SIGNAL MATRIX -->
+<div id="tab-signal" class="tab-content active">
+<main>
+  <!-- ALERT SUMMARY -->
+  <div class="sec">การเปลี่ยนแปลง Signal</div>
+  <div class="alert-summary" id="alertSummary">
+    <div class="alert-summary-hdr">
+      <span class="alert-summary-title">🔔 Signal Changes</span>
+      <span class="alert-summary-count" id="alertCount">กด Refresh เพื่อตรวจสอบ</span>
     </div>
-    <button id="applySymbolsBtn" onclick="applyAndGoDashboard()" disabled>
-      ✅ Apply &amp; Go to Dashboard →
-    </button>
+    <div id="alertSummaryBody"><div class="no-alerts">—</div></div>
   </div>
-  <table class="symbolTable">
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Symbol</th>
-        <th>Group</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="symbolPreviewBody"></tbody>
-  </table>
+ 
+  <div class="div"></div>
+  <div class="sec">ภาพรวม</div>
+  <div class="kpi-row" id="kpiRow"></div>
+  <div class="div"></div>
+  <div class="sec">อันดับกำไร</div>
+  <div class="fbar" id="fbar"></div>
+  <div class="rank-grid" id="rankGrid"></div>
+  <div class="div"></div>
+  <div class="sec">Timeline</div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+    <span style="font-family:var(--mono);font-size:9px;letter-spacing:2px;color:#8FCFBA;text-transform:uppercase;">กรองหุ้น</span>
+    <div class="sym-filter-bar" id="symFilterBar"></div>
+    <input id="symSearch" type="text" placeholder="ค้นหา symbol..." oninput="filterTimeline()">
+  </div>
+  <div class="tl-wrap"><table class="tl-table">
+    <thead><tr>
+      <th>วันที่</th><th>Symbol</th><th>Action</th><th>Score</th><th>ราคา</th>
+    </tr></thead>
+    <tbody id="tlBody"></tbody>
+  </table></div>
+</main>
 </div>
-
-</div><!-- END contentManage -->
-
+ 
+<!-- TAB 2: PORTFOLIO -->
+<div id="tab-portfolio" class="tab-content">
+<main>
+  <div class="sec" style="margin-top:4px">Portfolio Overview</div>
+  <div class="port-summary" id="portSummary"></div>
+  <div class="div"></div>
+  <div class="sec" style="display:flex;justify-content:space-between;align-items:center">
+    <span>หุ้นที่ถืออยู่</span>
+    <button class="refresh-btn" style="position:static;margin-left:0" onclick="loadFromSheet()">↻ Refresh ราคา</button>
+  </div>
+  <div class="port-table-wrap">
+    <table class="port-table">
+      <thead><tr>
+        <th>Symbol</th>
+        <th>ราคาทุน</th>
+        <th>ราคาปัจจุบัน</th>
+        <th>%P&L</th>
+        <th>Score</th>
+        <th>Action</th>
+        <th>Session</th>
+      </tr></thead>
+      <tbody id="portBody"></tbody>
+    </table>
+  </div>
+  <div style="margin-top:12px;font-family:var(--mono);font-size:10px;color:var(--muted);
+    background:rgba(255,255,255,.03);border-radius:4px;padding:10px 14px;line-height:1.9;">
+    Action Logic: 
+    <span style="color:var(--acc)">Score &lt;35 = ซื้อเพิ่ม</span> · 
+    <span style="color:var(--warn)">35-65 = ถือต่อ</span> · 
+    <span style="color:var(--tp)">65-80 = ขายบางส่วน</span> · 
+    <span style="color:var(--danger)">80+ = ขายหมด</span>
+  </div>
+</main>
+</div>
+ 
+</div>
+ 
 <script>
-
-let exportData = [];
-
-let smoothedFear = 50;
-
-let previousFear = 50;
-
-let fearHistory = [];
-
-const FEAR_EMA_ALPHA = 0.22;
-
-const groups = {
-
-"🚀 AI Infrastructure":[
-"TSSI",
-"ALAB",
-"DELL",
-"NBIS"
-],
-
-"💾 Memory":[
-"STX",
-"SNDK"
-],
-
-"🧠 AI Software":[
-"HIMS",
-"RXRX"
-],
-
-"🤖 Robotics":[
-"SYM",
-"SERV"
-],
-
-"⚛️ Quantum":[
-"QBTS",
-"QUBT",
-"IONQ"
-],
-
-"🛰 Space":[
-"LUNR",
-"PL"
-]
-
-};
-
-function safeNumber(v,fallback=50){
-
-  const n = parseFloat(v);
-
-  if(isNaN(n)) return fallback;
-
-  if(!isFinite(n)) return fallback;
-
-  return n;
-
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBP52ky9EAAHg-4losTPnIQrEBGIEwWLObt3TM-2kxcEchh4C24eiWZOEieJEHtDK2/exec';
+ 
+/* ============================================================ TABS */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='signal')||(i===1&&tab==='portfolio')));
+  document.getElementById('tab-signal').classList.toggle('active', tab==='signal');
+  document.getElementById('tab-portfolio').classList.toggle('active', tab==='portfolio');
+  if(tab==='portfolio') renderPortfolio();
 }
-
-function applyFearEMA(rawFear){
-
-  rawFear =
-  safeNumber(rawFear,50);
-
-  smoothedFear =
-  (
-    smoothedFear *
-    (1 - FEAR_EMA_ALPHA)
-  ) +
-  (
-    rawFear *
-    FEAR_EMA_ALPHA
-  );
-
-  return smoothedFear;
-
-}
-
-function limitFearMove(value){
-
-  let maxStep = 6;
-
-  if(value > previousFear + maxStep){
-
-    value =
-    previousFear + maxStep;
-
-  }
-
-  if(value < previousFear - maxStep){
-
-    value =
-    previousFear - maxStep;
-
-  }
-
-  previousFear = value;
-
-  return value;
-
-}
-
-function updateFearTrend(currentFear){
-
-  fearHistory.push(currentFear);
-
-  if(fearHistory.length > 5){
-
-    fearHistory.shift();
-
-  }
-
-  if(fearHistory.length < 2){
-
-    return {
-      text:"🟡 STABLE",
-      cls:"marketNeutral"
-    };
-
-  }
-
-  let first =
-  fearHistory[0];
-
-  let last =
-  fearHistory[
-    fearHistory.length - 1
-  ];
-
-  let diff =
-  last - first;
-
-  if(diff >= 8){
-
-    return {
-      text:"🟢 RISK EXPANDING",
-      cls:"marketBull"
-    };
-
-  }
-
-  if(diff <= -8){
-
-    return {
-      text:"🔴 RISK FALLING",
-      cls:"marketBear"
-    };
-
-  }
-
-  return {
-    text:"🟡 STABLE",
-    cls:"marketNeutral"
-  };
-
-}
-
-function calcRSI(prices, period=14){
-
-  if(!prices || prices.length < period + 1){
-    return 50;
-  }
-
-  let gains = 0;
-  let losses = 0;
-
-  for(let i=1;i<=period;i++){
-
-    let diff =
-    prices[i] - prices[i-1];
-
-    if(diff >= 0){
-      gains += diff;
-    }else{
-      losses -= diff;
-    }
-
-  }
-
-  let rs =
-  gains / (losses || 1);
-
-  return 100 - (100/(1+rs));
-
-}
-
-function getSession(){
-
-  const hour =
-  new Date().getHours();
-
-  if(hour < 9){
-    return "PREMARKET";
-  }
-
-  if(hour < 12){
-    return "OPEN";
-  }
-
-  if(hour < 15){
-    return "MIDDAY";
-  }
-
-  return "CLOSE";
-
-}
-
-const GAS_URL = "https://script.google.com/macros/s/AKfycbyODPUIrgyg_Gnpxqbaj6vbRc0rqc46WC4bDKAJP93WP1tbbcqJpA9qTcNDldPmNj44/exec";
-
-/* โหลด quotes ทั้งหมดจาก Apps Script ครั้งเดียว */
-async function loadAllQuotes(){
-  try{
-    const res = await fetch(GAS_URL + "?action=quotes");
-    const json = await res.json();
-    if(json.error) throw new Error(json.error);
-    // แปลง array เป็น map: symbol -> quote
-    const map = {};
-    (json.quotes || []).forEach(q => { map[q.symbol] = q; });
-    return map;
-  } catch(e){
-    console.warn("loadAllQuotes failed:", e.message);
-    return null;
-  }
-}
-
-/* fetchData รับ quote จาก map ที่โหลดมาแล้ว หรือ fallback Yahoo ตรงๆ */
-async function fetchData(symbol, quoteMap){
-
-  try{
-
-    let prices, volumes, price, ema20val, ema50val, rsiVal, volRatio;
-
-    // ถ้ามีข้อมูลจาก Apps Script ใช้เลย
-    if(quoteMap && quoteMap[symbol] && !quoteMap[symbol].error){
-      const q = quoteMap[symbol];
-      price    = q.price;
-      ema20val = q.ema20;
-      ema50val = q.ema50;
-      rsiVal   = q.rsi;
-      volRatio = q.volRatio;
-    } else {
-      // fallback: เรียก Yahoo ตรงๆ ผ่าน allorigins
-      const base = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=10d&interval=1h`;
-      const url  = "https://api.allorigins.win/raw?url=" + encodeURIComponent(base);
-      const res  = await fetch(url);
-      const data = await res.json();
-      const result = data?.chart?.result?.[0];
-
-      prices  = result?.indicators?.quote?.[0]?.close?.filter(v=>v);
-      volumes = result?.indicators?.quote?.[0]?.volume?.filter(v=>v);
-
-      if(!prices || prices.length < 55) return null;
-
-      function ema(period){
-        let k = 2/(period+1), e = [prices[0]];
-        for(let i=1;i<prices.length;i++) e.push(prices[i]*k+e[i-1]*(1-k));
-        return e[e.length-1];
-      }
-
-      price    = prices.at(-1);
-      ema20val = ema(20);
-      ema50val = ema(50);
-      rsiVal   = calcRSI(prices.slice(-15));
-      const avgVol = volumes.slice(-20).reduce((a,b)=>a+b,0)/20;
-      volRatio = volumes.at(-1)/(avgVol||1);
-    }
-
-    let score = 0;
-    if(price > ema20val) score += 2;
-    if(ema20val > ema50val) score += 2;
-    if(price > ema50val) score += 2;
-    if(rsiVal > 50 && rsiVal < 70) score += 1;
-    if(volRatio >= 1.5) score += 1;
-
-    let trend = "🟡 SIDE"; let trendCls = "side";
-    if(price > ema50val){ trend = "🟢 UP";   trendCls = "up"; }
-    if(price < ema50val){ trend = "🔴 DOWN";  trendCls = "down"; }
-
-    let heat = "🟢 COOL"; let heatCls = "cool";
-    if(rsiVal >= 65){ heat = "🟡 HOT";     heatCls = "hot"; }
-    if(rsiVal >= 80){ heat = "🔴 EXTREME"; heatCls = "extreme"; }
-
-    let confidence = "C"; let confidenceCls = "confC";
-    if(score >= 5){ confidence = "B"; confidenceCls = "confB"; }
-    if(score >= 7){ confidence = "A"; confidenceCls = "confA"; }
-
-    let smartRank = score;
-    let signal = "👁️"; let action = "WATCH"; let cls = "wait";
-    if(smartRank >= 7){ signal = "🟢"; action = "BUY";          cls = "buy"; }
-    if(rsiVal >= 80){   signal = "🔥"; action = "TAKE PROFIT";  cls = "wait"; }
-
-    let volText = "NORMAL"; let volCls = "volMid";
-    if(volRatio >= 1.5){ volText = "HIGH"; volCls = "volHigh"; }
-    if(volRatio < 0.8){  volText = "LOW";  volCls = "volLow"; }
-
-    let risk = "LOW"; let riskCls = "riskLow";
-    if(smartRank <= 5){ risk = "MEDIUM"; riskCls = "riskMid"; }
-    if(smartRank <= 3){ risk = "HIGH";   riskCls = "riskHigh"; }
-
-    let leaderTag = `<span class="tag tagWatch">👁️ WATCH</span>`;
-    let rowClass = "";
-    if(smartRank >= 7){ leaderTag = `<span class="tag tagLeader">🏆 LEADER</span>`;     rowClass = "leaderRow"; }
-    if(volRatio >= 1.8){ leaderTag = `<span class="tag tagMomentum">🚀 MOMENTUM</span>`; rowClass = "momentumRow"; }
-
-    return {
-      symbol, signal, action, cls,
-      trend, trendCls,
-      rsi: rsiVal.toFixed(1),
-      heat, heatCls,
-      confidence, confidenceCls,
-      smartRank, volText, volCls,
-      risk, riskCls, score,
-      leaderTag, rowClass,
-      price: price.toFixed(2),
-      ema20: ema20val.toFixed(2),
-      ema50: ema50val.toFixed(2),
-      momentum: (price > ema20val && ema20val > ema50val) ? "🚀" : "-",
-      news: "⚪"
-    };
-
-  } catch(err){
-    console.log(err);
-    return null;
-  }
-}
-
-async function load(){
-
-  exportData = [];
-
-  const btn = document.getElementById("refreshBtn");
+ 
+/* ============================================================ STATE */
+let allRows = [];
+let portfolioRows = [];
+let prevLatestActions = {};
+let filterNow = 'ALL';
+let symFilterNow = 'ALL';
+const SESSION_ORDER = {PREMARKET:0,OPEN:1,MIDDAY:2,CLOSE:3};
+ 
+/* ============================================================ LOAD */
+async function loadFromSheet() {
+  const btn = document.getElementById('refreshBtn');
   btn.disabled = true;
-  btn.innerHTML = "⏳ Loading...";
-  document.getElementById("statusMsg").innerHTML = "⏳ Loading market data...";
-
-  let tb = document.getElementById("tb");
-  tb.innerHTML = "";
-  let allResults = [];
-
-  const currentGroups = activeGroups || DEFAULT_GROUPS;
-
-  // โหลด quotes ทั้งหมดจาก Apps Script ครั้งเดียว
-  document.getElementById("statusMsg").innerHTML = "⏳ Fetching quotes from server...";
-  const quoteMap = await loadAllQuotes();
-  if(quoteMap){
-    document.getElementById("statusMsg").innerHTML = `⏳ Processing ${Object.keys(quoteMap).length} quotes...`;
-  } else {
-    document.getElementById("statusMsg").innerHTML = "⏳ Fallback: loading from Yahoo directly...";
-  }
-
-  for(let group in currentGroups){
-
-    let results = await Promise.all(
-      currentGroups[group].map(s => fetchData(s, quoteMap))
-    );
-
-    results = results.filter(x=>x).sort((a,b) => b.smartRank - a.smartRank);
-    allResults.push(...results);
-
-    tb.innerHTML += `<tr class="group"><td colspan="18">${group}</td></tr>`;
-
-    for(let i = 0; i < results.length; i++){
-      let d = results[i];
-      const now = new Date();
-
-      exportData.push({
-
-        date:
-        now.toISOString()
-        .split("T")[0],
-
-        time:
-        now.toLocaleTimeString(),
-
-        session:
-        getSession(),
-
-        group,
-
-        symbol:d.symbol,
-        signal:d.signal,
-        trend:d.trend,
-        action:d.action,
-        rsi:d.rsi,
-        heat:d.heat,
-        confidence:d.confidence,
-        smartRank:d.smartRank,
-        volume:d.volText,
-        risk:d.risk,
-        score:d.score,
-        price:d.price,
-        ema20:d.ema20,
-        ema50:d.ema50
-
-      });
-
-      tb.innerHTML += `
-
-<tr class="${d.rowClass}">
-
-<td>#${i+1}</td>
-
-<td>${d.symbol}</td>
-
-<td>${d.leaderTag}</td>
-
-<td style="font-size:20px;">
-${d.signal}
-</td>
-
-<td class="${d.trendCls}">
-${d.trend}
-</td>
-
-<td class="${d.cls}">
-${d.action}
-</td>
-
-<td>${d.rsi}</td>
-
-<td class="${d.heatCls}">
-${d.heat}
-</td>
-
-<td class="${d.confidenceCls}">
-${d.confidence}
-</td>
-
-<td>${d.smartRank}</td>
-
-<td class="${d.volCls}">
-${d.volText}
-</td>
-
-<td class="${d.riskCls}">
-${d.risk}
-</td>
-
-<td>${d.score}</td>
-
-<td>${d.price}</td>
-
-<td>${d.ema20}</td>
-
-<td>${d.ema50}</td>
-
-<td>${d.momentum}</td>
-
-<td>${d.news}</td>
-
-</tr>
-
-`;
-
+  document.getElementById('sheetStatus').className = 'status-val loading';
+  let dots = 0;
+  const t = setInterval(() => {
+    dots=(dots+1)%4;
+    document.getElementById('sheetStatus').textContent = `กำลังโหลด${'.' .repeat(dots+1)}`;
+  }, 800);
+ 
+  try {
+    const res = await fetch(APPS_SCRIPT_URL, {method:'GET',redirect:'follow'});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const text = await res.text();
+    let parsed;
+    try { parsed = JSON.parse(text); } catch(e) {
+      parsed = { history: csvToArray(text), portfolio: [] };
     }
-
-  }
-
-  let avgRank = 0;
-
-  allResults.forEach(x=>{
-    avgRank += x.smartRank;
-  });
-
-  avgRank =
-  avgRank / (allResults.length || 1);
-
-  let rawFear =
-  Math.round(
-  (avgRank / 10) * 100
-  );
-
-  rawFear =
-  Math.max(
-    0,
-    Math.min(100,rawFear)
-  );
-
-  let fearValue =
-  applyFearEMA(rawFear);
-
-  fearValue =
-  limitFearMove(fearValue);
-
-  fearValue =
-  Math.round(fearValue);
-
-  const trendData =
-  updateFearTrend(fearValue);
-
-  const trendBox =
-  document.getElementById(
-  "fearTrendValue"
-  );
-
-  trendBox.innerHTML =
-  trendData.text;
-
-  trendBox.className =
-  "fearTrendValue " +
-  trendData.cls;
-
-  const fearBox =
-  document.getElementById(
-  "fearStatus"
-  );
-
-  const fearText =
-  document.getElementById(
-  "fearText"
-  );
-
-  const fearValueText =
-  document.getElementById(
-  "fearValue"
-  );
-
-  const needle =
-  document.getElementById(
-  "gaugeNeedle"
-  );
-
-  let rotateDeg =
-  (fearValue / 100) * 180;
-
-  needle.style.transform =
-  `rotate(${rotateDeg}deg)`;
-
-  fearValueText.innerHTML =
-  fearValue;
-
-  fearBox.className =
-  "fearStatus neutral";
-
-  fearText.innerHTML =
-  "🟡 NEUTRAL";
-
-  let marketMode =
-  document.getElementById(
-  "marketModeValue"
-  );
-
-  marketMode.className =
-  "marketModeValue marketNeutral";
-
-  marketMode.innerHTML =
-  "🟡 BALANCED";
-
-  if(fearValue >= 70){
-
-    fearBox.className =
-    "fearStatus riskOn";
-
-    fearText.innerHTML =
-    "🟢 RISK ON";
-
-    marketMode.className =
-    "marketModeValue marketBull";
-
-    marketMode.innerHTML =
-    "🟢 MOMENTUM BULL";
-
-  }
-
-  if(fearValue <= 35){
-
-    fearBox.className =
-    "fearStatus riskOff";
-
-    fearText.innerHTML =
-    "🔴 RISK OFF";
-
-    marketMode.className =
-    "marketModeValue marketBear";
-
-    marketMode.innerHTML =
-    "🔴 DEFENSIVE";
-
-  }
-
-  let bullCount =
-  allResults.filter(
-  x => x.trend.includes("UP")
-  ).length;
-
-  let bearCount =
-  allResults.filter(
-  x => x.trend.includes("DOWN")
-  ).length;
-
-  let extremeCount =
-  allResults.filter(
-  x => x.heat.includes("EXTREME")
-  ).length;
-
-  let leaderCount =
-  allResults.filter(
-  x => x.smartRank >= 7
-  ).length;
-
-  document.getElementById(
-  "bullCount"
-  ).innerHTML =
-  bullCount;
-
-  document.getElementById(
-  "bearCount"
-  ).innerHTML =
-  bearCount;
-
-  document.getElementById(
-  "heatCount"
-  ).innerHTML =
-  extremeCount;
-
-  document.getElementById(
-  "leaderCount"
-  ).innerHTML =
-  leaderCount;
-
-  document.getElementById(
-  "lastUpdate"
-  ).innerHTML =
-  "Last Update: " +
-  new Date().toLocaleTimeString();
-
-  document.getElementById(
-  "statusMsg"
-  ).innerHTML =
-  "✅ Dashboard updated successfully";
-
-  btn.disabled = false;
-
-  btn.innerHTML =
-  "🔄 Refresh";
-
-}
-
-/* EXPORT CSV */
-
-function exportCSV(){
-
-  if(exportData.length === 0){
-
-    alert("No data");
-
-    return;
-
-  }
-
-  const headers = [
-
-"date",
-"time",
-"session",
-"group",
-"symbol",
-"signal",
-"trend",
-"action",
-"rsi",
-"heat",
-"confidence",
-"smartRank",
-"volume",
-"risk",
-"score",
-"price",
-"ema20",
-"ema50"
-
-  ];
-
-  let csv =
-  headers.join(",") + "\n";
-
-  exportData.forEach(d=>{
-
-    csv += [
-
-      d.date,
-      d.time,
-      d.session,
-      d.group,
-      d.symbol,
-      d.signal,
-      d.trend,
-      d.action,
-      d.rsi,
-      d.heat,
-      d.confidence,
-      d.smartRank,
-      d.volume,
-      d.risk,
-      d.score,
-      d.price,
-      d.ema20,
-      d.ema50
-
-    ].join(",") + "\n";
-
-  });
-
-  const blob =
-  new Blob([csv],{
-    type:"text/csv"
-  });
-
-  const url =
-  URL.createObjectURL(blob);
-
-  const a =
-  document.createElement("a");
-
-  a.href = url;
-
-  const now = new Date();
-
-  const fileName =
-  now.getFullYear() + "-" +
-  String(now.getMonth()+1).padStart(2,"0") + "-" +
-  String(now.getDate()).padStart(2,"0") + "_" +
-  String(now.getHours()).padStart(2,"0") + "-" +
-  String(now.getMinutes()).padStart(2,"0") + "-" +
-  String(now.getSeconds()).padStart(2,"0");
-
-  a.download =
-  "dashboard_export_" + fileName + ".csv";
-
-  document.body.appendChild(a);
-
-  a.click();
-
-  document.body.removeChild(a);
-
-  URL.revokeObjectURL(url);
-
-}
-
-/* EXPORT TEXT */
-
-function exportText(){
-
-  if(exportData.length === 0){
-
-    alert("No data");
-
-    return;
-
-  }
-
-  let text = "";
-
-  exportData.forEach((d,index)=>{
-
-    text +=
-`#${index+1}\n`;
-
-    text +=
-`Date: ${d.date}\n`;
-
-    text +=
-`Time: ${d.time}\n`;
-
-    text +=
-`Session: ${d.session}\n`;
-
-    text +=
-`Group: ${d.group}\n`;
-
-    text +=
-`Symbol: ${d.symbol}\n`;
-
-    text +=
-`Signal: ${d.signal}\n`;
-
-    text +=
-`Action: ${d.action}\n`;
-
-    text +=
-`Trend: ${d.trend}\n`;
-
-    text +=
-`RSI: ${d.rsi}\n`;
-
-    text +=
-`Heat: ${d.heat}\n`;
-
-    text +=
-`Confidence: ${d.confidence}\n`;
-
-    text +=
-`SmartRank: ${d.smartRank}\n`;
-
-    text +=
-`Volume: ${d.volume}\n`;
-
-    text +=
-`Risk: ${d.risk}\n`;
-
-    text +=
-`Score: ${d.score}\n`;
-
-    text +=
-`Price: ${d.price}\n`;
-
-    text +=
-`EMA20: ${d.ema20}\n`;
-
-    text +=
-`EMA50: ${d.ema50}\n`;
-
-    text +=
-`--------------------------\n\n`;
-
-  });
-
-  const blob =
-  new Blob([text],{
-    type:"text/plain"
-  });
-
-  const url =
-  URL.createObjectURL(blob);
-
-  const a =
-  document.createElement("a");
-
-  a.href = url;
-
-  a.download =
-  "dashboard_export.txt";
-
-  document.body.appendChild(a);
-
-  a.click();
-
-  document.body.removeChild(a);
-
-  URL.revokeObjectURL(url);
-
-}
-
-/* =========================================
-   TAB SYSTEM
-   ========================================= */
-
-function switchTab(tab){
-  document.getElementById("contentDashboard").classList.toggle("active", tab==="dashboard");
-  document.getElementById("contentManage").classList.toggle("active", tab==="manage");
-  document.getElementById("tabDashboard").classList.toggle("active", tab==="dashboard");
-  document.getElementById("tabManage").classList.toggle("active", tab==="manage");
-}
-
-/* =========================================
-   DEFAULT SYMBOLS (hardcoded เดิม)
-   ========================================= */
-
-const DEFAULT_GROUPS = {
-  "🚀 AI Infrastructure":["TSSI","ALAB","DELL","NBIS"],
-  "💾 Memory":["STX","SNDK"],
-  "🧠 AI Software":["HIMS","RXRX"],
-  "🤖 Robotics":["SYM","SERV"],
-  "⚛️ Quantum":["QBTS","QUBT","IONQ"],
-  "🛰 Space":["LUNR","PL"]
-};
-
-/* activeGroups คือ object ที่ loop ใช้งานจริง */
-let activeGroups = null;
-
-/* =========================================
-   LOAD FROM GOOGLE SHEET
-   ========================================= */
-
-async function loadFromSheet(){
-  const btn = document.getElementById("loadSheetBtn");
-  const statusEl = document.getElementById("symbolsStatusMsg");
-
-  btn.disabled = true;
-  btn.innerHTML = "⏳ Loading...";
-  statusEl.innerHTML = "⏳ กำลังโหลดข้อมูลจาก Google Sheet...";
-
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbyODPUIrgyg_Gnpxqbaj6vbRc0rqc46WC4bDKAJP93WP1tbbcqJpA9qTcNDldPmNj44/exec";
-
-  try{
-    const res = await fetch(GAS_URL + "?sheet=symbol_active");
-    const json = await res.json();
-
-    if(json.error){
-      throw new Error(json.error);
+ 
+    const historyCSV = arrayToCSV(parsed.history || []);
+    const newRows = parseCSV(historyCSV);
+    if(newRows.length === 0) throw new Error('ไม่มีข้อมูล');
+ 
+    // snapshot prev actions ก่อน update
+    prevLatestActions = {};
+    getLatest().forEach(r => { prevLatestActions[r.symbol] = r.action; });
+ 
+    allRows = newRows;
+    portfolioRows = parsed.portfolio || [];
+ 
+    clearInterval(t);
+    document.getElementById('sheetStatus').className = 'status-val ok';
+    document.getElementById('sheetStatus').textContent = `Google Sheets · stock_history ✓`;
+    document.getElementById('recordCount').textContent = `${allRows.length} records`;
+    document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString('th-TH');
+    document.getElementById('lastUpdated').style.color = 'var(--acc)';
+ 
+    renderAll();
+    updateAlertSummary();
+ 
+  } catch(err) {
+    clearInterval(t);
+    document.getElementById('sheetStatus').className = 'status-val err';
+    document.getElementById('sheetStatus').textContent = `โหลดไม่ได้ · offline`;
+    if(allRows.length === 0) {
+      allRows = parseCSV(FALLBACK_CSV);
+      document.getElementById('recordCount').textContent = `${allRows.length} records (offline)`;
+      renderAll();
     }
-
-    const rows = json.rows || [];
-    const activeSymbols = [];
-    const groupMap = {};
-
-    rows.forEach(r => {
-      const sym = (r.symbol || "").trim().toUpperCase();
-      const grp = (r.group_name || "").trim();
-      if(!sym) return;
-      activeSymbols.push(sym);
-      if(grp) groupMap[sym] = grp;
-    });
-
-    console.log("activeSymbols:", activeSymbols);
-    console.log("groupMap:", groupMap);
-
-    if(activeSymbols.length === 0){
-      statusEl.innerHTML = "❌ ไม่พบข้อมูลใน sheet symbol_active";
-      btn.disabled = false; btn.innerHTML = "📥 Load Sheet";
-      return;
-    }
-
-    const noGroupCount = activeSymbols.filter(s => !groupMap[s]).length;
-    statusEl.innerHTML = `✅ โหลดสำเร็จ: ${activeSymbols.length} symbols (ไม่มีกลุ่ม: ${noGroupCount})`;
-    renderSymbolPreview(activeSymbols, groupMap, "sheet");
-
-  } catch(err){
-    statusEl.innerHTML = `❌ ${err.message}`;
-    console.error("loadFromSheet error:", err);
-  }
-
-  btn.disabled = false;
-  btn.innerHTML = "📥 Load Sheet";
-}
-
-function parseCSVColumn(text, colIndex){
-  return text.split(/\r?\n/).map(line => {
-    const parts = line.replace(/"/g,"").split(",");
-    return (parts[colIndex]||"").trim().replace(/\r/g,"");
-  }).filter(s => s && s.toLowerCase() !== "symbol");
-}
-
-function parseCSVRows(text){
-  return text.split(/\r?\n/).map(line =>
-    line.replace(/"/g,"").split(",").map(s => s.trim().replace(/\r/g,""))
-  ).filter(r => r.length >= 2 && r[0] && r[0].toLowerCase() !== "symbol");
-}
-
-/* =========================================
-   USE DEFAULT SYMBOLS
-   ========================================= */
-
-function useDefaultSymbols(){
-  // แปลง DEFAULT_GROUPS เป็น activeSymbols + groupMap
-  const allSymbols = [];
-  const groupMap   = {};
-  for(const [grp, syms] of Object.entries(DEFAULT_GROUPS)){
-    syms.forEach(s => {
-      allSymbols.push(s);
-      groupMap[s] = grp;
-    });
-  }
-  document.getElementById("symbolsStatusMsg").innerHTML =
-    "🏠 ใช้หุ้น Default (hardcoded เดิม)";
-  renderSymbolPreview(allSymbols, groupMap, "default");
-}
-
-/* =========================================
-   RENDER SYMBOL PREVIEW
-   ========================================= */
-
-// กลุ่มแนะนำให้ dropdown
-const SUGGESTED_GROUPS = [
-  "🚀 AI Infrastructure",
-  "💾 Memory",
-  "🧠 AI Software",
-  "🤖 Robotics",
-  "⚛️ Quantum",
-  "🛰 Space",
-  "🧠 AI & Semi",
-  "🚀 Growth",
-  "📊 Other"
-];
-
-let pendingSymbols  = [];
-let pendingGroupMap = {};
-
-function renderSymbolPreview(symbols, groupMap, source){
-  pendingSymbols  = symbols;
-  pendingGroupMap = {...groupMap};
-
-  const panel = document.getElementById("symbolPreviewPanel");
-  const tbody = document.getElementById("symbolPreviewBody");
-  const warn  = document.getElementById("warningArea");
-  const applyBtn = document.getElementById("applySymbolsBtn");
-  const sourceTag = document.getElementById("sourceTagEl");
-
-  panel.style.display = "block";
-
-  sourceTag.className = source === "sheet"
-    ? "sourceTag sourceSheet"
-    : "sourceTag sourceDefault";
-  sourceTag.innerHTML = source === "sheet"
-    ? "📡 FROM SHEET"
-    : "🏠 DEFAULT";
-
-  const noGroup = symbols.filter(s => !groupMap[s]);
-
-  if(noGroup.length > 0){
-    warn.innerHTML = `
-      <div class="warningBox">
-        ⚠️ <strong>พบ ${noGroup.length} หุ้นที่ยังไม่มีกลุ่ม</strong>
-        — กด <strong>🤖 AI Suggest</strong> เพื่อให้ AI วิเคราะห์และแนะนำกลุ่ม<br/>
-        <small style="opacity:.8;">จากนั้นเลือกกลุ่มที่ต้องการ หรือนำชื่อกลุ่มใหม่ไปบันทึกใน Sheet แล้ว Load ใหม่</small>
-      </div>`;
-    applyBtn.disabled = true;
-  } else {
-    warn.innerHTML = `<div class="infoBox">✅ หุ้นทุกตัวมีกลุ่มครบแล้ว พร้อม Apply</div>`;
-    applyBtn.disabled = false;
-  }
-
-  tbody.innerHTML = "";
-  symbols.forEach((sym, i) => {
-    const grp = groupMap[sym];
-    const hasGroup = !!grp;
-
-    const optionsHtml = SUGGESTED_GROUPS.map(g =>
-      `<option value="${g}" ${g===grp?"selected":""}>${g}</option>`
-    ).join("");
-
-    // existing groups from current session
-    const existingGroups = [...new Set(Object.values(pendingGroupMap).filter(Boolean))];
-
-    tbody.innerHTML += `
-      <tr id="row_${sym}">
-        <td style="color:#64748b;">${i+1}</td>
-        <td style="font-weight:bold;color:${hasGroup?'white':'#fca5a5'}">${sym}</td>
-        <td>
-          ${hasGroup
-            ? `<span class="groupBadge">${grp}</span>`
-            : `<div>
-                <select class="suggestGroupSelect" id="grpSel_${sym}" onchange="assignGroup('${sym}', this.value)">
-                  <option value="">— เลือกกลุ่ม —</option>
-                  ${optionsHtml}
-                </select>
-                <button class="aiAnalyzeBtn" id="aiBtn_${sym}" onclick="analyzeSymbolGroup('${sym}')" style="margin-left:6px;">
-                  🤖 AI Suggest
-                </button>
-               </div>
-               <div id="aiResult_${sym}"></div>`
-          }
-        </td>
-        <td>
-          ${hasGroup
-            ? `<span style="color:#22c55e;font-size:12px;">✅ OK</span>`
-            : `<span class="noGroupBadge" id="statusBadge_${sym}">⚠️ ไม่มีกลุ่ม</span>`
-          }
-        </td>
-      </tr>`;
-  });
-}
-
-function assignGroup(symbol, group){
-  if(!group) return;
-  pendingGroupMap[symbol] = group;
-
-  // อัพเดต badge และ warning โดยไม่ rerender ทั้งหมด
-  const statusBadge = document.getElementById("statusBadge_" + symbol);
-  if(statusBadge) statusBadge.innerHTML = "✅ OK";
-  if(statusBadge) statusBadge.className = "";
-  if(statusBadge) statusBadge.style.color = "#22c55e";
-
-  // ซ่อน aiResult
-  const aiResult = document.getElementById("aiResult_" + symbol);
-  if(aiResult) aiResult.innerHTML = "";
-
-  // เช็คว่าครบทุกตัวหรือยัง
-  const noGroup = pendingSymbols.filter(s => !pendingGroupMap[s]);
-  const applyBtn = document.getElementById("applySymbolsBtn");
-  const warn = document.getElementById("warningArea");
-  if(noGroup.length === 0){
-    warn.innerHTML = `<div class="infoBox">✅ หุ้นทุกตัวมีกลุ่มครบแล้ว พร้อม Apply</div>`;
-    applyBtn.disabled = false;
-  } else {
-    warn.innerHTML = `<div class="warningBox">⚠️ <strong>ยังเหลือ ${noGroup.length} หุ้นที่ไม่มีกลุ่ม</strong>: ${noGroup.join(", ")}</div>`;
-    applyBtn.disabled = true;
-  }
-}
-
-const SYMBOL_DB = {
-  "TSLA":{"company":"Tesla","tags":["ev","electric vehicle","energy storage"]},
-  "NVDA":{"company":"NVIDIA","tags":["semiconductor","ai","gpu"]},
-  "AMD":{"company":"AMD","tags":["semiconductor","ai","gpu"]},
-  "INTC":{"company":"Intel","tags":["semiconductor"]},
-  "ARM":{"company":"ARM Holdings","tags":["semiconductor","ai","chip design"]},
-  "AVGO":{"company":"Broadcom","tags":["semiconductor","ai"]},
-  "TSM":{"company":"TSMC","tags":["semiconductor","foundry"]},
-  "ALAB":{"company":"Astera Labs","tags":["ai infrastructure","data center"]},
-  "DELL":{"company":"Dell Technologies","tags":["ai infrastructure","server","data center"]},
-  "NBIS":{"company":"Nebius Group","tags":["ai infrastructure","cloud"]},
-  "TSSI":{"company":"TSS Inc","tags":["ai infrastructure","data center"]},
-  "CRWV":{"company":"CoreWeave","tags":["ai infrastructure","cloud","gpu"]},
-  "APLD":{"company":"Applied Digital","tags":["ai infrastructure","data center","hpc"]},
-  "PLTR":{"company":"Palantir","tags":["ai software","data analytics"]},
-  "HIMS":{"company":"Hims & Hers Health","tags":["ai software","health","telehealth"]},
-  "RXRX":{"company":"Recursion Pharma","tags":["ai software","biotech","drug discovery"]},
-  "STX":{"company":"Seagate","tags":["memory","storage","hdd"]},
-  "WDC":{"company":"Western Digital","tags":["memory","storage"]},
-  "SNDK":{"company":"SanDisk","tags":["memory","flash","storage"]},
-  "MU":{"company":"Micron","tags":["memory","dram","nand"]},
-  "SYM":{"company":"Symbotic","tags":["robotics","automation","warehouse"]},
-  "SERV":{"company":"Serve Robotics","tags":["robotics","delivery","autonomous"]},
-  "QBTS":{"company":"D-Wave Quantum","tags":["quantum","computing"]},
-  "QUBT":{"company":"Quantum Computing Inc","tags":["quantum","computing"]},
-  "IONQ":{"company":"IonQ","tags":["quantum","computing"]},
-  "LUNR":{"company":"Intuitive Machines","tags":["space","lunar","nasa"]},
-  "PL":{"company":"Planet Labs","tags":["space","satellite","imagery"]},
-  "RKLB":{"company":"Rocket Lab","tags":["space","launch","satellite"]},
-  "ASTS":{"company":"AST SpaceMobile","tags":["space","satellite","telecom"]},
-  "ONDS":{"company":"Ondas Holdings","tags":["space","drone","robotics"]},
-  "OKLO":{"company":"Oklo Inc","tags":["nuclear","clean energy","energy"]},
-  "NVTS":{"company":"Navitas Semiconductor","tags":["semiconductor","power","ev"]},
-  "EOSE":{"company":"Eos Energy Enterprises","tags":["energy storage","battery","clean energy"]},
-};
-
-const GROUP_TAGS = {
-  "🚀 AI Infrastructure": ["ai infrastructure","data center","cloud","hpc","gpu cloud","server"],
-  "💾 Memory":            ["memory","storage","dram","nand","flash","hdd","ssd"],
-  "🧠 AI Software":       ["ai software","machine learning","data analytics","nlp","biotech ai"],
-  "🤖 Robotics":          ["robotics","automation","autonomous","drone","warehouse"],
-  "⚛️ Quantum":           ["quantum","quantum computing"],
-  "🛰 Space":             ["space","satellite","launch","lunar","nasa"],
-  "🧠 AI & Semi":         ["semiconductor","chip","gpu","ai chip","foundry","chip design"],
-  "🚀 Growth":            ["growth","high growth","disruptive"],
-  "⚡ Energy Storage":    ["energy storage","battery","grid storage"],
-  "☢️ Nuclear Energy":    ["nuclear","clean energy","energy","power"],
-  "🚗 EV & Mobility":     ["ev","electric vehicle","mobility"],
-};
-
-function analyzeSymbolGroup(symbol){
-  const btn = document.getElementById("aiBtn_" + symbol);
-  const resultEl = document.getElementById("aiResult_" + symbol);
-  if(!btn || !resultEl) return;
-
-  btn.disabled = true;
-  btn.innerHTML = "⏳ Analyzing...";
-
-  setTimeout(()=>{
-    const info = SYMBOL_DB[symbol.toUpperCase()];
-    const existingGroups = [...new Set(Object.values(pendingGroupMap).filter(Boolean))];
-    const allGroups = [...new Set([...existingGroups, ...Object.keys(GROUP_TAGS)])];
-
-    let matchedGroups = [];
-    let suggestedNewGroup = null;
-    let company = info?.company || symbol;
-    let tags = info?.tags || [];
-
-    if(tags.length > 0){
-      // หา group ที่ match จาก GROUP_TAGS
-      for(const [grp, grpTags] of Object.entries(GROUP_TAGS)){
-        const hit = tags.some(t => grpTags.some(gt => t.includes(gt) || gt.includes(t)));
-        if(hit) matchedGroups.push(grp);
-      }
-    }
-
-    // กรอง matchedGroups ให้เอาเฉพาะที่อยู่ใน allGroups ก่อน (existing priority)
-    const existingMatches = matchedGroups.filter(g => existingGroups.includes(g));
-    const newMatches = matchedGroups.filter(g => !existingGroups.includes(g));
-
-    const fitsExisting = existingMatches.length > 0;
-
-    // ถ้าไม่ match เลย ให้แนะนำกลุ่มใหม่จาก tags
-    if(matchedGroups.length === 0 && tags.length > 0){
-      const firstTag = tags[0];
-      suggestedNewGroup = "📊 " + firstTag.split(" ").map(w=>w.charAt(0).toUpperCase()+w.slice(1)).join(" ");
-    } else if(newMatches.length > 0 && !fitsExisting){
-      suggestedNewGroup = newMatches[0];
-    }
-
-    const reasonMap = {
-      "🚀 AI Infrastructure": "บริษัทให้บริการ infrastructure สำหรับ AI เช่น data center หรือ cloud",
-      "💾 Memory":            "บริษัทผลิตหรือจำหน่ายอุปกรณ์จัดเก็บข้อมูล",
-      "🧠 AI Software":       "บริษัทพัฒนา software หรือ platform ที่ใช้ AI",
-      "🤖 Robotics":          "บริษัทพัฒนาหุ่นยนต์หรือระบบ automation",
-      "⚛️ Quantum":           "บริษัทพัฒนาเทคโนโลยี quantum computing",
-      "🛰 Space":             "บริษัทในอุตสาหกรรมอวกาศ ดาวเทียม หรือการปล่อยยาน",
-      "🧠 AI & Semi":         "บริษัทออกแบบหรือผลิต semiconductor และ AI chip",
-      "🚀 Growth":            "หุ้นกลุ่ม high-growth ที่มีศักยภาพสูง",
-      "⚡ Energy Storage":    "บริษัทพัฒนาระบบกักเก็บพลังงาน เช่น battery หรือ grid storage",
-      "☢️ Nuclear Energy":    "บริษัทในอุตสาหกรรมพลังงานนิวเคลียร์หรือ clean energy",
-    };
-    const topMatch = existingMatches[0] || newMatches[0] || suggestedNewGroup;
-    const reason = reasonMap[topMatch] || `${company} อยู่ใน sector: ${tags.join(", ") || "ไม่ทราบ"}`;
-
-    let html = `<div class="aiSuggestBox">
-      <div class="aiSuggestTitle">🤖 AI Analysis: ${company}</div>`;
-
-    if(fitsExisting){
-      html += `<div style="margin-bottom:6px;color:#94a3b8;font-size:11px;">✅ เข้าได้กับกลุ่มที่มีอยู่:</div>`;
-      existingMatches.forEach(grp => {
-        html += `<button class="aiSuggestGroup aiSuggestExist" onclick="selectAiGroup('${symbol}','${grp.replace(/'/g,"\\'")}'">${grp}</button>`;
-      });
-    }
-
-    if(suggestedNewGroup || newMatches.length > 0){
-      const newGrp = suggestedNewGroup || newMatches[0];
-      html += `<div style="margin-top:8px;margin-bottom:6px;color:#94a3b8;font-size:11px;">
-        ${fitsExisting ? "หรือสร้างกลุ่มใหม่:" : "❌ ไม่เข้ากับกลุ่มที่มีอยู่ — แนะนำกลุ่มใหม่:"}
-      </div>
-      <button class="aiSuggestGroup aiSuggestNew" onclick="selectAiGroup('${symbol}','${newGrp.replace(/'/g,"\\'")}')">
-        ✨ ${newGrp}
-      </button>
-      <small style="display:block;margin-top:4px;color:#64748b;font-size:10px;">
-        คัดลอกชื่อกลุ่มนี้ไปบันทึกใน Google Sheet แล้ว Load ใหม่
-      </small>`;
-    }
-
-    if(!fitsExisting && !suggestedNewGroup && newMatches.length === 0){
-      html += `<div style="color:#94a3b8;font-size:12px;">ไม่พบข้อมูล ticker นี้ใน database — กรุณาเลือกกลุ่มเองจาก dropdown</div>`;
-    }
-
-    html += `<div class="aiSuggestReason">💡 ${reason}</div></div>`;
-    resultEl.innerHTML = html;
-
+  } finally {
+    clearInterval(t);
     btn.disabled = false;
-    btn.innerHTML = "🤖 AI Suggest";
-  }, 300);
-}
-
-function selectAiGroup(symbol, group){
-  // เซ็ต dropdown ให้ตรงกับที่ AI แนะนำ
-  const sel = document.getElementById("grpSel_" + symbol);
-  if(sel){
-    // ถ้ากลุ่มยังไม่มีใน options ให้เพิ่ม
-    const exists = [...sel.options].some(o => o.value === group);
-    if(!exists){
-      const opt = document.createElement("option");
-      opt.value = group;
-      opt.text = group + " (ใหม่)";
-      sel.appendChild(opt);
-    }
-    sel.value = group;
   }
-  assignGroup(symbol, group);
 }
-
-/* =========================================
-   APPLY & GO TO DASHBOARD
-   ========================================= */
-
-function applyAndGoDashboard(){
-  // สร้าง groups object จาก pendingGroupMap
-  const built = {};
-  pendingSymbols.forEach(sym => {
-    const grp = pendingGroupMap[sym];
-    if(!grp) return;
-    if(!built[grp]) built[grp] = [];
-    built[grp].push(sym);
+ 
+/* ============================================================ HELPERS */
+function csvToArray(text) {
+  return text.trim().split('\n').map(l => l.split(',').map(v => v.trim()));
+}
+function arrayToCSV(arr) {
+  return arr.map(r => r.join(',')).join('\n');
+}
+ 
+/* ============================================================ CSV PARSER */
+function parseCSV(text) {
+  const lines = text.trim().split('\n').map(l=>l.trim()).filter(Boolean);
+  if(lines.length<2) return [];
+  const hdr = lines[0].split(',').map(h=>h.trim());
+  return lines.slice(1).map(line => {
+    const vals = line.split(',').map(v=>v.trim());
+    const obj = {};
+    hdr.forEach((h,i) => obj[h]=vals[i]||'');
+    obj.rsi=parseFloat(obj.rsi)||0;
+    obj.score=parseInt(obj.score)||0;
+    obj.price=parseFloat(obj.price)||0;
+    obj.ema20=parseFloat(obj.ema20)||0;
+    obj.ema50=parseFloat(obj.ema50)||0;
+    obj.pct_ema50=obj.ema50?+((obj.price-obj.ema50)/obj.ema50*100).toFixed(2):0;
+    obj.heat_n={COOL:1,HOT:2,EXTREME:3}[obj.heat]||1;
+    obj.conf_n={A:3,B:2,C:1}[obj.confidence]||1;
+    obj.group=obj.group.replace(/[^\x20-\x7E\u0E00-\u0E7F]/g,'').trim();
+    obj.action=(obj.action||'').toUpperCase().trim();
+    return obj;
+  }).filter(r=>r.symbol&&r.price>0);
+}
+ 
+/* ============================================================ LATEST */
+function getLatest() {
+  const map = {};
+  allRows.forEach(r => {
+    const k=r.symbol;
+    if(!map[k]){map[k]=r;return;}
+    const cur=map[k];
+    if(r.date>cur.date){map[k]=r;return;}
+    if(r.date===cur.date&&(SESSION_ORDER[r.session]||0)>=(SESSION_ORDER[cur.session]||0)) map[k]=r;
   });
-
-  // ใส่ใน activeGroups
-  activeGroups = built;
-
-  // switch tab แล้ว load
-  switchTab("dashboard");
-  load();
+  return Object.values(map);
 }
-
-/* =========================================
-   MAIN LOAD (ใช้ activeGroups หรือ DEFAULT)
-   ========================================= */
-
-// ไม่ auto-load dashboard — เปิด Manage Symbols tab ก่อน
-// switchTab เริ่มต้นที่ manage แล้ว (active อยู่แล้วใน HTML)
-
+ 
+/* ============================================================ COMPOSITE */
+function composite(r, maxPct50) {
+  const rsiN=Math.max(0,(r.rsi-30)/70);
+  const heatN=(r.heat_n-1)/2;
+  const pctN=maxPct50>0?Math.min(r.pct_ema50/maxPct50,1):0;
+  const momN=r.ema50>0?Math.min(((r.ema20-r.ema50)/r.ema50*100)/(maxPct50||1),1):0;
+  const scrN=r.score>4?(r.score-4)/4:0;
+  return +((rsiN*.30+heatN*.25+pctN*.20+momN*.15+scrN*.10)*100).toFixed(1);
+}
+ 
+/* ============================================================ ALERT SUMMARY */
+function updateAlertSummary() {
+  const latest = getLatest();
+  const changes = [];
+  latest.forEach(r => {
+    const prev = prevLatestActions[r.symbol];
+    if(prev && prev !== r.action) {
+      changes.push({symbol:r.symbol, from:prev, to:r.action, group:r.group, date:r.date, session:r.session});
+    }
+  });
+ 
+  const body = document.getElementById('alertSummaryBody');
+  const count = document.getElementById('alertCount');
+ 
+  if(changes.length === 0) {
+    body.innerHTML = `<div class="no-alerts">ไม่มีการเปลี่ยนแปลง Signal</div>`;
+    count.textContent = `ล่าสุด: ${new Date().toLocaleTimeString('th-TH')}`;
+    document.querySelector('.alert-summary').style.borderColor = 'rgba(255,255,255,.08)';
+    return;
+  }
+ 
+  document.querySelector('.alert-summary').style.borderColor = 'rgba(255,193,7,.3)';
+  count.textContent = `${changes.length} รายการ · ${new Date().toLocaleTimeString('th-TH')}`;
+ 
+  const aClr = a => a==='BUY'?'var(--acc)':a==='TAKE PROFIT'?'var(--tp)':'var(--warn)';
+  body.innerHTML = changes.map(c => `
+    <div class="alert-row">
+      <span class="alert-sym">${c.symbol}</span>
+      <span class="alert-change">
+        <span style="color:${aClr(c.from)}">${c.from}</span>
+        <span style="color:var(--muted);margin:0 6px">→</span>
+        <span style="color:${aClr(c.to)};font-weight:700">${c.to}</span>
+        <span style="color:var(--muted);font-size:9px;margin-left:8px">${c.group}</span>
+      </span>
+      <span class="alert-time">${c.date} · ${c.session}</span>
+    </div>`).join('');
+ 
+  // popup ด้วย
+  showAlertPopup(changes);
+}
+ 
+function showAlertPopup(changes) {
+  const aClr = a => a==='BUY'?'var(--acc)':a==='TAKE PROFIT'?'var(--tp)':'var(--warn)';
+  const overlay = document.createElement('div');
+  overlay.className = 'alert-overlay';
+  overlay.innerHTML = `<div class="alert-box">
+    <div class="alert-title">🔔 Signal เปลี่ยน! — ${changes.length} หุ้น</div>
+    <div class="alert-items">${changes.map(c=>`
+      <div class="alert-item">
+        <div class="alert-sym2">${c.symbol}</div>
+        <div class="alert-change">
+          <div style="font-size:9px;color:var(--muted);margin-bottom:3px">${c.group}</div>
+          <span style="color:${aClr(c.from)}">${c.from}</span>
+          <span style="color:var(--muted);margin:0 6px">→</span>
+          <span style="color:${aClr(c.to)};font-weight:700">${c.to}</span>
+        </div>
+      </div>`).join('')}</div>
+    <button class="alert-close" onclick="this.closest('.alert-overlay').remove()">รับทราบ · ปิด</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click', e=>{if(e.target===overlay)overlay.remove();});
+}
+ 
+/* ============================================================ UPLOAD */
+function handleUpload(files) {
+  const msg = document.getElementById('uploadMsg');
+  let newRows=[], done=0, total=files.length;
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      newRows = newRows.concat(parseCSV(e.target.result));
+      done++;
+      if(done===total) {
+        const seen = new Set(allRows.map(r=>`${r.date}|${r.time}|${r.symbol}`));
+        const toAdd = newRows.filter(r=>!seen.has(`${r.date}|${r.time}|${r.symbol}`));
+        if(toAdd.length===0){msg.innerHTML=`<span style="color:var(--warn)">ข้อมูลซ้ำทั้งหมด</span>`;return;}
+        checkAlertsOnUpload(toAdd);
+        allRows = allRows.concat(toAdd);
+        allRows.sort((a,b)=>(a.date+a.time)<(b.date+b.time)?-1:1);
+        document.getElementById('recordCount').textContent=`${allRows.length} records`;
+        msg.innerHTML=`<b style="color:var(--acc)">✓ เพิ่ม ${toAdd.length} records</b> · รวม ${allRows.length} · <span style="color:var(--warn)">อย่าลืม paste เข้า Sheet</span>`;
+        renderAll();
+      }
+    };
+    reader.readAsText(file,'utf-8');
+  });
+}
+ 
+function checkAlertsOnUpload(toAdd) {
+  const prev = {};
+  getLatest().forEach(r=>{prev[r.symbol]=r.action;});
+  const combined=[...allRows,...toAdd];
+  const map={};
+  combined.forEach(r=>{
+    const k=r.symbol;
+    if(!map[k]){map[k]=r;return;}
+    const cur=map[k];
+    if(r.date>cur.date){map[k]=r;return;}
+    if(r.date===cur.date&&(SESSION_ORDER[r.session]||0)>=(SESSION_ORDER[cur.session]||0)) map[k]=r;
+  });
+  const changes=[];
+  Object.values(map).forEach(r=>{
+    const p=prev[r.symbol];
+    if(p&&p!==r.action) changes.push({symbol:r.symbol,from:p,to:r.action,group:r.group,date:r.date,session:r.session});
+  });
+  if(changes.length>0) showAlertPopup(changes);
+}
+ 
+/* ============================================================ RENDER HELPERS */
+function rsiClr(v){return v>=80?'var(--danger)':v>=70?'var(--tp)':v>=60?'var(--warn)':'var(--acc)';}
+function heatClr(h){return h==='EXTREME'?'var(--tp)':h==='HOT'?'var(--warn)':'var(--acc)';}
+function compClr(v){return v>=65?'var(--tp)':v>=35?'var(--warn)':'var(--acc)';}
+function gradeLabel(v){
+  if(v>=65) return {txt:'🔥 MOMENTUM',bg:'rgba(255,107,53,.15)',clr:'var(--tp)'};
+  if(v>=35) return {txt:'⚡ BUILDING',bg:'rgba(255,193,7,.12)',clr:'var(--warn)'};
+  return {txt:'🟢 FRESH BUY',bg:'rgba(0,255,178,.12)',clr:'var(--acc)'};
+}
+function actionPill(a){
+  if(a==='BUY') return `<span class="ap ap-BUY">BUY</span>`;
+  if(a==='TAKE PROFIT') return `<span class="ap ap-TP">TAKE PROFIT</span>`;
+  return `<span class="ap ap-W">WATCH</span>`;
+}
+ 
+function entryExitBox(r) {
+  const pct = r.pct_ema50;
+  const entryOk = r.action==='BUY'&&r.score>=7&&r.confidence==='A'&&r.rsi<65&&r.heat==='COOL'&&pct<5&&r.risk==='LOW';
+  if(r.action==='BUY') {
+    const sl=+(r.ema50*.98).toFixed(2);
+    const tp1=+(r.price*1.08).toFixed(2);
+    const tp2=+(r.price*1.15).toFixed(2);
+    const slPct=+((r.price-sl)/r.price*100).toFixed(1);
+    const status=entryOk?`<span style="color:var(--acc);font-weight:700">✅ เข้าได้เลย</span>`:`<span style="color:var(--warn);font-weight:700">⚠️ ระวัง</span>`;
+    return `<div class="ebox">
+      <div class="ebox-row">${status}</div>
+      <div class="ebox-row"><span class="elbl">Entry</span><span class="eval">$${r.price.toFixed(2)}</span></div>
+      <div class="ebox-row"><span class="elbl">Stop</span><span class="eval" style="color:var(--danger)">$${sl} <small>(-${slPct}%)</small></span></div>
+      <div class="ebox-row"><span class="elbl">TP1</span><span class="eval" style="color:var(--warn)">$${tp1} <small>(+8%)</small></span></div>
+      <div class="ebox-row"><span class="elbl">TP2</span><span class="eval" style="color:var(--acc)">$${tp2} <small>(+15%)</small></span></div>
+    </div>`;
+  }
+  if(r.action==='TAKE PROFIT') {
+    return `<div class="ebox">
+      <div class="ebox-row"><span style="color:var(--tp);font-weight:700">🔴 ขายได้เลย</span></div>
+      <div class="ebox-row"><span class="elbl">ราคา</span><span class="eval">$${r.price.toFixed(2)}</span></div>
+      <div class="ebox-row"><span class="elbl">RSI</span><span class="eval" style="color:var(--danger)">${r.rsi} overbought</span></div>
+      <div class="ebox-row"><span class="elbl">%EMA50</span><span class="eval" style="color:var(--tp)">+${pct}% วิ่งไปมากแล้ว</span></div>
+    </div>`;
+  }
+  const tp1=+(r.price*1.08).toFixed(2);
+  return `<div class="ebox">
+    <div class="ebox-row"><span style="color:var(--warn);font-weight:700">👁️ รอ signal ชัดขึ้น</span></div>
+    <div class="ebox-row"><span class="elbl">ราคา</span><span class="eval">$${r.price.toFixed(2)}</span></div>
+    <div class="ebox-row"><span class="elbl">Entry ถ้า</span><span class="eval" style="color:var(--muted)">RSI &lt;65 + COOL</span></div>
+    <div class="ebox-row"><span class="elbl">Target</span><span class="eval" style="color:var(--warn)">$${tp1} <small>(+8%)</small></span></div>
+  </div>`;
+}
+ 
+const medals=['🥇','🥈','🥉'];
+const rankCls=i=>i===0?'r1':i===1?'r2':i===2?'r3':'';
+ 
+/* ============================================================ RENDER ALL */
+function renderAll() {
+  const latest=getLatest();
+  const maxPct50=Math.max(...latest.map(r=>r.pct_ema50),1);
+  latest.forEach(r=>{r._comp=composite(r,maxPct50);});
+  latest.sort((a,b)=>b._comp-a._comp);
+  const dates=[...new Set(allRows.map(r=>r.date))].sort();
+  const buyList=latest.filter(r=>r.action==='BUY');
+  const tpList=latest.filter(r=>r.action==='TAKE PROFIT');
+  const avgRsi=latest.length?(latest.reduce((s,r)=>s+r.rsi,0)/latest.length).toFixed(1):0;
+  const top=latest[0];
+  document.getElementById('kpiRow').innerHTML=[
+    {l:'Total Symbols',v:latest.length,s:`${dates.length} วัน · ${allRows.length} records`,c:'g'},
+    {l:'BUY Signals',v:buyList.length,s:'upside ยังเหลือ · Conf A',c:'b'},
+    {l:'Top Score',v:`${top?.symbol||'-'}`,s:`${top?._comp||0}/100 · Score ${top?.score||0}/8`,c:'o'},
+    {l:'Avg RSI',v:avgRsi,s:'ทุก symbol · latest',c:'w'},
+    {l:'Take Profit',v:tpList.length,s:'วิ่งไปแล้ว · ระวัง',c:'r'},
+  ].map(k=>`<div class="kpi ${k.c}">
+    <div class="kpi-lbl">${k.l}</div>
+    <div class="kpi-val">${k.v}</div>
+    <div class="kpi-sub">${k.s}</div>
+  </div>`).join('');
+  setupFilters(latest,maxPct50);
+  renderRanking(latest,maxPct50);
+  renderTimeline();
+  setTimeout(buildSymFilter,0);
+}
+ 
+/* ============================================================ FILTERS */
+function setupFilters(latest,maxPct50) {
+  document.getElementById('fbar').innerHTML=['ALL','BUY','TAKE PROFIT','WATCH','Conf A','Score ≥7'].map(f=>
+    `<button class="fb ${f===filterNow?'on':''}" onclick="setFilter('${f}')">${f}</button>`).join('');
+}
+function setFilter(f){
+  filterNow=f;
+  document.querySelectorAll('#fbar .fb').forEach(b=>b.classList.toggle('on',b.textContent===f));
+  const latest=getLatest();
+  const maxPct50=Math.max(...latest.map(r=>r.pct_ema50),1);
+  latest.forEach(r=>{r._comp=composite(r,maxPct50);});
+  latest.sort((a,b)=>b._comp-a._comp);
+  renderRanking(latest,maxPct50);
+}
+ 
+function renderRanking(latest,maxPct50) {
+  const filtered=latest.filter(r=>{
+    if(filterNow==='ALL') return true;
+    if(filterNow==='BUY') return r.action==='BUY';
+    if(filterNow==='TAKE PROFIT') return r.action==='TAKE PROFIT';
+    if(filterNow==='WATCH') return r.action==='WATCH';
+    if(filterNow==='Conf A') return r.confidence==='A';
+    if(filterNow==='Score ≥7') return r.score>=7;
+    return true;
+  });
+  const mxRsi=Math.max(...filtered.map(r=>r.rsi),1);
+  const mxPct=Math.max(...filtered.map(r=>r.pct_ema50),1);
+  const mxMom=Math.max(...filtered.map(r=>r.ema50>0?(r.ema20-r.ema50)/r.ema50*100:0),1);
+  document.getElementById('rankGrid').innerHTML=filtered.map((r,i)=>{
+    const gi=latest.indexOf(r);
+    const mom=r.ema50>0?+((r.ema20-r.ema50)/r.ema50*100).toFixed(2):0;
+    const g=gradeLabel(r._comp);
+    const cClr=compClr(r._comp);
+    const bars=[
+      {lbl:'RSI',w:r.rsi/mxRsi*100,clr:rsiClr(r.rsi),disp:r.rsi.toString()},
+      {lbl:'Heat',w:r.heat_n/3*100,clr:heatClr(r.heat),disp:r.heat},
+      {lbl:'%EMA50',w:mxPct>0?r.pct_ema50/mxPct*100:0,clr:'#29B6F6',disp:`+${r.pct_ema50}%`},
+      {lbl:'EMAMom',w:mxMom>0?mom/mxMom*100:0,clr:'#CE93D8',disp:`+${mom.toFixed(2)}%`},
+      {lbl:'Score',w:r.score/8*100,clr:'#80CBC4',disp:`${r.score}/8`},
+    ];
+    const chips=[
+      {txt:`RSI ${r.rsi}`,bg:`${rsiClr(r.rsi)}20`,brd:`${rsiClr(r.rsi)}50`,clr:rsiClr(r.rsi)},
+      {txt:r.heat,bg:`${heatClr(r.heat)}18`,brd:`${heatClr(r.heat)}45`,clr:heatClr(r.heat)},
+      {txt:`Conf ${r.confidence}`,bg:'rgba(0,255,178,.1)',brd:'rgba(0,255,178,.3)',clr:'var(--acc)'},
+      {txt:r.risk,bg:'rgba(255,255,255,.05)',brd:'rgba(255,255,255,.12)',clr:r.risk==='LOW'?'var(--acc)':r.risk==='MEDIUM'?'var(--warn)':'var(--danger)'},
+    ];
+    const isTop3=gi<3;
+    return `<div class="rcard ${rankCls(gi)}">
+      <div class="c-rank">
+        ${isTop3?`<span class="medal">${medals[gi]}</span>`:''}
+        <div class="rnum ${isTop3?'':'dim'}">${gi+1}</div>
+      </div>
+      <div class="c-info">
+        <div class="sym">${r.symbol}</div>
+        <div class="grp">${r.group} · ${r.date}</div>
+        <div class="act">${actionPill(r.action)}</div>
+        ${entryExitBox(r)}
+      </div>
+      <div class="c-break">
+        <div class="break-title">ที่มาคะแนน</div>
+        <div class="brows">${bars.map(b=>`
+          <div class="brow">
+            <div class="blbl">${b.lbl}</div>
+            <div class="btrack"><div class="bfill" style="width:${Math.max(0,b.w).toFixed(1)}%;background:${b.clr}"></div></div>
+            <div class="bval" style="color:${b.clr}">${b.disp}</div>
+          </div>`).join('')}</div>
+      </div>
+      <div class="c-chips">
+        <div class="chip-row">${chips.map(c=>`<span class="chip" style="background:${c.bg};border-color:${c.brd};color:${c.clr}">${c.txt}</span>`).join('')}</div>
+        <div class="pricebox">ราคา: <b>$${r.price.toLocaleString('en',{minimumFractionDigits:2})}</b> · ${r.session} · ${r.date}</div>
+      </div>
+      <div class="c-score">
+        <div class="score-lbl">คะแนนกำไร</div>
+        <div class="score-val" style="color:${cClr}">${r._comp}</div>
+        <div class="score-sub">จาก 100</div>
+        <div class="grade" style="background:${g.bg};color:${g.clr}">${g.txt}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+ 
+/* ============================================================ TIMELINE (5 columns) */
+let symFilterNowTl = 'ALL';
+function buildSymFilter() {
+  const bar=document.getElementById('symFilterBar');
+  if(!bar) return;
+  const syms=[...new Set(allRows.map(r=>r.symbol))].sort();
+  bar.innerHTML=`<button class="sfb ${symFilterNowTl==='ALL'?'on':''}" onclick="setSymFilter('ALL')">ALL</button>`+
+    syms.map(s=>`<button class="sfb ${symFilterNowTl===s?'on':''}" onclick="setSymFilter('${s}')">${s}</button>`).join('');
+}
+function setSymFilter(s){
+  symFilterNowTl=s;
+  const inp=document.getElementById('symSearch');
+  if(inp) inp.value='';
+  buildSymFilter();
+  filterTimeline();
+}
+function filterTimeline(){
+  const search=(document.getElementById('symSearch')?.value||'').toUpperCase().trim();
+  document.getElementById('tlBody').innerHTML=renderTimelineRows(symFilterNowTl,search);
+}
+function renderTimeline(){
+  document.getElementById('tlBody').innerHTML=renderTimelineRows('ALL','');
+}
+function renderTimelineRows(symFilter,search) {
+  symFilter=symFilter||'ALL'; search=search||'';
+  const aClr=a=>a==='BUY'?'var(--acc)':a.includes('PROFIT')?'var(--tp)':'var(--warn)';
+  return [...allRows]
+    .filter(r=>{
+      if(symFilter!=='ALL'&&r.symbol!==symFilter) return false;
+      if(search&&!r.symbol.includes(search)&&!r.group.toUpperCase().includes(search)) return false;
+      return true;
+    })
+    .sort((a,b)=>(b.date+b.time)<(a.date+a.time)?-1:1)
+    .map(r=>`<tr>
+      <td style="color:#8FCFBA">${r.date}</td>
+      <td style="font-weight:700;color:var(--text);font-size:12px">${r.symbol}</td>
+      <td style="color:${aClr(r.action)};font-weight:700">${r.action}</td>
+      <td style="color:var(--acc);font-weight:700">${r.score}/8</td>
+      <td style="color:var(--text);font-weight:600">$${r.price.toLocaleString('en',{minimumFractionDigits:2})}</td>
+    </tr>`).join('')||`<tr><td colspan="5" style="text-align:center;padding:20px;color:#8FCFBA">ไม่พบข้อมูล</td></tr>`;
+}
+ 
+/* ============================================================ PORTFOLIO TAB */
+function renderPortfolio() {
+  const latest = getLatest();
+  const maxPct50 = Math.max(...latest.map(r=>r.pct_ema50),1);
+  latest.forEach(r=>{r._comp=composite(r,maxPct50);});
+ 
+  // parse portfolio sheet [symbol, cost_price]
+  const portMap = {};
+  if(portfolioRows.length > 1) {
+    portfolioRows.slice(1).forEach(row => {
+      if(row[0] && row[1]) {
+        portMap[row[0].trim().toUpperCase()] = parseFloat(row[1]) || 0;
+      }
+    });
+  }
+ 
+  const holdings = Object.keys(portMap).map(sym => {
+    const cost = portMap[sym];
+    const stock = latest.find(r=>r.symbol===sym);
+    const price = stock?.price || 0;
+    const comp = stock !== undefined ? (stock._comp ?? 0) : 0;
+    const pnl = cost > 0 && price > 0 ? +((price-cost)/cost*100).toFixed(2) : null;
+ 
+    const comp2 = isNaN(comp) ? 0 : comp;
+    let action = ''; let actionCls = '';
+    if(comp2 >= 80) { action='ขายหมด'; actionCls='at-sell'; }
+    else if(comp2 >= 65) { action='ขายบางส่วน'; actionCls='at-partial'; }
+    else if(comp2 >= 35) { action='ถือต่อ'; actionCls='at-hold'; }
+    else { action='ซื้อเพิ่ม'; actionCls='at-add'; }
+ 
+    return {sym, cost, price, pnl, comp, action, actionCls, group:stock?.group||'', session:stock?.session||'', score:stock?.score||0};
+  });
+ 
+  // summary
+  const totalHoldings = holdings.length;
+  const withPnl = holdings.filter(h=>h.pnl!==null);
+  const avgPnl = withPnl.length ? (withPnl.reduce((s,h)=>s+h.pnl,0)/withPnl.length).toFixed(1) : '—';
+  const profit = holdings.filter(h=>h.pnl!==null&&h.pnl>0).length;
+  const loss = holdings.filter(h=>h.pnl!==null&&h.pnl<0).length;
+ 
+  document.getElementById('portSummary').innerHTML=[
+    {l:'ถือทั้งหมด',v:`${totalHoldings} ตัว`,c:totalHoldings>0?'var(--acc)':'var(--muted)'},
+    {l:'Avg P&L',v:`${avgPnl}%`,c:parseFloat(avgPnl)>=0?'var(--acc)':'var(--danger)'},
+    {l:'กำไร',v:`${profit} ตัว`,c:'var(--acc)'},
+    {l:'ขาดทุน',v:`${loss} ตัว`,c:loss>0?'var(--danger)':'var(--muted)'},
+  ].map(k=>`<div class="port-kpi">
+    <div class="port-kpi-lbl">${k.l}</div>
+    <div class="port-kpi-val" style="color:${k.c}">${k.v}</div>
+  </div>`).join('');
+ 
+  const pnlClr = v => v===null?'var(--muted)':v>=0?'var(--acc)':'var(--danger)';
+  document.getElementById('portBody').innerHTML = holdings.length === 0
+    ? `<tr><td colspan="7" style="text-align:center;padding:20px;color:var(--muted);font-family:var(--mono)">ไม่มีข้อมูลใน Sheet tab "portfolio"</td></tr>`
+    : holdings.sort((a,b)=>b.comp-a.comp).map(h=>`<tr>
+      <td><div class="port-sym">${h.sym}</div><div class="port-grp">${h.group}</div></td>
+      <td style="font-family:var(--mono)">$${h.cost.toLocaleString('en',{minimumFractionDigits:2})}</td>
+      <td style="font-family:var(--mono);color:var(--text)">$${h.price.toLocaleString('en',{minimumFractionDigits:2})}</td>
+      <td style="font-family:var(--mono);font-weight:700;color:${pnlClr(h.pnl)}">${h.pnl!==null?(h.pnl>=0?'+':'')+h.pnl+'%':'—'}</td>
+      <td style="font-family:var(--mono);font-weight:700;color:${compClr(h.comp)}">${h.comp}</td>
+      <td><span class="action-tag ${h.actionCls}">${h.action}</span></td>
+      <td style="font-family:var(--mono);font-size:10px;color:var(--muted)">${h.session}</td>
+    </tr>`).join('');
+}
+ 
+/* ============================================================ FALLBACK */
+const FALLBACK_CSV = `date,time,session,group,symbol,signal,trend,action,rsi,heat,confidence,smartRank,volume,risk,score,price,ema20,ema50
+2026-05-28,04:28:56,PREMARKET,AI & Semi,TSM,BUY,UP,BUY,65.6,HOT,A,8,HIGH,LOW,8,412.32,408.85,404.95
+2026-05-28,04:25:33,PREMARKET,Growth,OKLO,BUY,UP,BUY,58.5,COOL,A,7,LOW,LOW,7,68.70,67.09,65.54
+2026-05-28,04:28:57,PREMARKET,Space,ONDS,BUY,UP,BUY,61.1,COOL,A,7,LOW,LOW,7,9.77,9.58,9.52
+2026-05-28,21:48:20,CLOSE,Growth,NVTS,TAKE PROFIT,UP,TAKE PROFIT,87.5,EXTREME,B,6,LOW,LOW,6,32.60,27.54,24.26`;
+ 
+/* ============================================================ INIT */
+loadFromSheet();
+function tick(){
+  const n=new Date();
+  document.getElementById('clk').textContent=n.toISOString().replace('T',' ').slice(0,19)+' UTC';
+}
+tick(); setInterval(tick,1000);
 </script>
-
 </body>
 </html>
