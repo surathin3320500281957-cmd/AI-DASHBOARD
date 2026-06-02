@@ -1121,345 +1121,163 @@ function getSession(){
 
 }
 
-async function fetchData(symbol){
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzuja46T3uM-FP9k2Gxcx4RJIZ7U9XL7D7ZGufq4bthKlnEMr0cZSjdxlIQhayCiTQ/exec";
+
+/* โหลด quotes ทั้งหมดจาก Apps Script ครั้งเดียว */
+async function loadAllQuotes(){
+  try{
+    const res = await fetch(GAS_URL + "?action=quotes");
+    const json = await res.json();
+    if(json.error) throw new Error(json.error);
+    // แปลง array เป็น map: symbol -> quote
+    const map = {};
+    (json.quotes || []).forEach(q => { map[q.symbol] = q; });
+    return map;
+  } catch(e){
+    console.warn("loadAllQuotes failed:", e.message);
+    return null;
+  }
+}
+
+/* fetchData รับ quote จาก map ที่โหลดมาแล้ว หรือ fallback Yahoo ตรงๆ */
+async function fetchData(symbol, quoteMap){
 
   try{
 
-    const base =
-`https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=10d&interval=1h`;
+    let prices, volumes, price, ema20val, ema50val, rsiVal, volRatio;
 
-    const url =
-"https://api.allorigins.win/raw?url="
-+ encodeURIComponent(base);
+    // ถ้ามีข้อมูลจาก Apps Script ใช้เลย
+    if(quoteMap && quoteMap[symbol] && !quoteMap[symbol].error){
+      const q = quoteMap[symbol];
+      price    = q.price;
+      ema20val = q.ema20;
+      ema50val = q.ema50;
+      rsiVal   = q.rsi;
+      volRatio = q.volRatio;
+    } else {
+      // fallback: เรียก Yahoo ตรงๆ ผ่าน allorigins
+      const base = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=10d&interval=1h`;
+      const url  = "https://api.allorigins.win/raw?url=" + encodeURIComponent(base);
+      const res  = await fetch(url);
+      const data = await res.json();
+      const result = data?.chart?.result?.[0];
 
-    const res = await fetch(url);
+      prices  = result?.indicators?.quote?.[0]?.close?.filter(v=>v);
+      volumes = result?.indicators?.quote?.[0]?.volume?.filter(v=>v);
 
-    const data = await res.json();
+      if(!prices || prices.length < 55) return null;
 
-    const result =
-    data?.chart?.result?.[0];
-
-    let prices =
-    result?.indicators?.quote?.[0]
-    ?.close?.filter(v=>v);
-
-    let volumes =
-    result?.indicators?.quote?.[0]
-    ?.volume?.filter(v=>v);
-
-    if(!prices || prices.length < 55){
-      return null;
-    }
-
-    function ema(period){
-
-      let k = 2 / (period + 1);
-
-      let e = [prices[0]];
-
-      for(let i=1;i<prices.length;i++){
-
-        e.push(
-          prices[i]*k +
-          e[i-1]*(1-k)
-        );
-
+      function ema(period){
+        let k = 2/(period+1), e = [prices[0]];
+        for(let i=1;i<prices.length;i++) e.push(prices[i]*k+e[i-1]*(1-k));
+        return e[e.length-1];
       }
 
-      return e[e.length-1];
-
+      price    = prices.at(-1);
+      ema20val = ema(20);
+      ema50val = ema(50);
+      rsiVal   = calcRSI(prices.slice(-15));
+      const avgVol = volumes.slice(-20).reduce((a,b)=>a+b,0)/20;
+      volRatio = volumes.at(-1)/(avgVol||1);
     }
-
-    let price = prices.at(-1);
-
-    let ema20 = ema(20);
-
-    let ema50 = ema(50);
-
-    let rsi =
-    calcRSI(prices.slice(-15));
-
-    let avgVol =
-    volumes.slice(-20)
-    .reduce((a,b)=>a+b,0)
-    / 20;
-
-    let currentVol =
-    volumes.at(-1);
-
-    let volRatio =
-    currentVol / (avgVol || 1);
 
     let score = 0;
-
-    if(price > ema20) score += 2;
-    if(ema20 > ema50) score += 2;
-    if(price > ema50) score += 2;
-    if(rsi > 50 && rsi < 70) score += 1;
+    if(price > ema20val) score += 2;
+    if(ema20val > ema50val) score += 2;
+    if(price > ema50val) score += 2;
+    if(rsiVal > 50 && rsiVal < 70) score += 1;
     if(volRatio >= 1.5) score += 1;
 
-    let trend = "🟡 SIDE";
-    let trendCls = "side";
+    let trend = "🟡 SIDE"; let trendCls = "side";
+    if(price > ema50val){ trend = "🟢 UP";   trendCls = "up"; }
+    if(price < ema50val){ trend = "🔴 DOWN";  trendCls = "down"; }
 
-    if(price > ema50){
+    let heat = "🟢 COOL"; let heatCls = "cool";
+    if(rsiVal >= 65){ heat = "🟡 HOT";     heatCls = "hot"; }
+    if(rsiVal >= 80){ heat = "🔴 EXTREME"; heatCls = "extreme"; }
 
-      trend = "🟢 UP";
-      trendCls = "up";
-
-    }
-
-    if(price < ema50){
-
-      trend = "🔴 DOWN";
-      trendCls = "down";
-
-    }
-
-    let heat = "🟢 COOL";
-    let heatCls = "cool";
-
-    if(rsi >= 65){
-
-      heat = "🟡 HOT";
-      heatCls = "hot";
-
-    }
-
-    if(rsi >= 80){
-
-      heat = "🔴 EXTREME";
-      heatCls = "extreme";
-
-    }
-
-    let confidence = "C";
-    let confidenceCls = "confC";
-
-    if(score >= 5){
-
-      confidence = "B";
-      confidenceCls = "confB";
-
-    }
-
-    if(score >= 7){
-
-      confidence = "A";
-      confidenceCls = "confA";
-
-    }
+    let confidence = "C"; let confidenceCls = "confC";
+    if(score >= 5){ confidence = "B"; confidenceCls = "confB"; }
+    if(score >= 7){ confidence = "A"; confidenceCls = "confA"; }
 
     let smartRank = score;
+    let signal = "👁️"; let action = "WATCH"; let cls = "wait";
+    if(smartRank >= 7){ signal = "🟢"; action = "BUY";          cls = "buy"; }
+    if(rsiVal >= 80){   signal = "🔥"; action = "TAKE PROFIT";  cls = "wait"; }
 
-    let signal = "👁️";
-    let action = "WATCH";
-    let cls = "wait";
+    let volText = "NORMAL"; let volCls = "volMid";
+    if(volRatio >= 1.5){ volText = "HIGH"; volCls = "volHigh"; }
+    if(volRatio < 0.8){  volText = "LOW";  volCls = "volLow"; }
 
-    if(smartRank >= 7){
+    let risk = "LOW"; let riskCls = "riskLow";
+    if(smartRank <= 5){ risk = "MEDIUM"; riskCls = "riskMid"; }
+    if(smartRank <= 3){ risk = "HIGH";   riskCls = "riskHigh"; }
 
-      signal = "🟢";
-      action = "BUY";
-      cls = "buy";
-
-    }
-
-    if(rsi >= 80){
-
-      signal = "🔥";
-      action = "TAKE PROFIT";
-      cls = "wait";
-
-    }
-
-    let volText = "NORMAL";
-    let volCls = "volMid";
-
-    if(volRatio >= 1.5){
-
-      volText = "HIGH";
-      volCls = "volHigh";
-
-    }
-
-    if(volRatio < 0.8){
-
-      volText = "LOW";
-      volCls = "volLow";
-
-    }
-
-    let risk = "LOW";
-    let riskCls = "riskLow";
-
-    if(smartRank <= 5){
-
-      risk = "MEDIUM";
-      riskCls = "riskMid";
-
-    }
-
-    if(smartRank <= 3){
-
-      risk = "HIGH";
-      riskCls = "riskHigh";
-
-    }
-
-    let leaderTag =
-`
-<span class="tag tagWatch">
-👁️ WATCH
-</span>
-`;
-
+    let leaderTag = `<span class="tag tagWatch">👁️ WATCH</span>`;
     let rowClass = "";
-
-    if(smartRank >= 7){
-
-      leaderTag =
-`
-<span class="tag tagLeader">
-🏆 LEADER
-</span>
-`;
-
-      rowClass = "leaderRow";
-
-    }
-
-    if(volRatio >= 1.8){
-
-      leaderTag =
-`
-<span class="tag tagMomentum">
-🚀 MOMENTUM
-</span>
-`;
-
-      rowClass = "momentumRow";
-
-    }
+    if(smartRank >= 7){ leaderTag = `<span class="tag tagLeader">🏆 LEADER</span>`;     rowClass = "leaderRow"; }
+    if(volRatio >= 1.8){ leaderTag = `<span class="tag tagMomentum">🚀 MOMENTUM</span>`; rowClass = "momentumRow"; }
 
     return {
-
-      symbol,
-      signal,
-      action,
-      cls,
-
-      trend,
-      trendCls,
-
-      rsi:rsi.toFixed(1),
-
-      heat,
-      heatCls,
-
-      confidence,
-      confidenceCls,
-
-      smartRank,
-
-      volText,
-      volCls,
-
-      risk,
-      riskCls,
-
-      score,
-
-      leaderTag,
-      rowClass,
-
-      price:price.toFixed(2),
-
-      ema20:ema20.toFixed(2),
-
-      ema50:ema50.toFixed(2),
-
-      momentum:
-      (
-        price > ema20 &&
-        ema20 > ema50
-      )
-      ? "🚀"
-      : "-",
-
-      news:"⚪"
-
+      symbol, signal, action, cls,
+      trend, trendCls,
+      rsi: rsiVal.toFixed(1),
+      heat, heatCls,
+      confidence, confidenceCls,
+      smartRank, volText, volCls,
+      risk, riskCls, score,
+      leaderTag, rowClass,
+      price: price.toFixed(2),
+      ema20: ema20val.toFixed(2),
+      ema50: ema50val.toFixed(2),
+      momentum: (price > ema20val && ema20val > ema50val) ? "🚀" : "-",
+      news: "⚪"
     };
 
-  }catch(err){
-
+  } catch(err){
     console.log(err);
-
     return null;
-
   }
-
 }
 
 async function load(){
 
   exportData = [];
 
-  const btn =
-  document.getElementById(
-  "refreshBtn"
-  );
-
+  const btn = document.getElementById("refreshBtn");
   btn.disabled = true;
+  btn.innerHTML = "⏳ Loading...";
+  document.getElementById("statusMsg").innerHTML = "⏳ Loading market data...";
 
-  btn.innerHTML =
-  "⏳ Loading...";
-
-  document.getElementById(
-  "statusMsg"
-  ).innerHTML =
-  "⏳ Loading market data...";
-
-  let tb =
-  document.getElementById("tb");
-
+  let tb = document.getElementById("tb");
   tb.innerHTML = "";
-
   let allResults = [];
 
-  // ใช้ activeGroups ถ้ามี ไม่งั้นใช้ DEFAULT_GROUPS
   const currentGroups = activeGroups || DEFAULT_GROUPS;
+
+  // โหลด quotes ทั้งหมดจาก Apps Script ครั้งเดียว
+  document.getElementById("statusMsg").innerHTML = "⏳ Fetching quotes from server...";
+  const quoteMap = await loadAllQuotes();
+  if(quoteMap){
+    document.getElementById("statusMsg").innerHTML = `⏳ Processing ${Object.keys(quoteMap).length} quotes...`;
+  } else {
+    document.getElementById("statusMsg").innerHTML = "⏳ Fallback: loading from Yahoo directly...";
+  }
 
   for(let group in currentGroups){
 
-    let results =
-    await Promise.all(
-    currentGroups[group].map(
-    s => fetchData(s)
-    ));
-
-    results =
-    results.filter(x=>x)
-    .sort((a,b)=>
-    b.smartRank - a.smartRank
+    let results = await Promise.all(
+      currentGroups[group].map(s => fetchData(s, quoteMap))
     );
 
+    results = results.filter(x=>x).sort((a,b) => b.smartRank - a.smartRank);
     allResults.push(...results);
 
-    tb.innerHTML += `
+    tb.innerHTML += `<tr class="group"><td colspan="18">${group}</td></tr>`;
 
-<tr class="group">
-<td colspan="18">
-${group}
-</td>
-</tr>
-
-`;
-
-    for(let i=0;i<results.length;i++){
-
+    for(let i = 0; i < results.length; i++){
       let d = results[i];
-
-      const now =
-      new Date();
+      const now = new Date();
 
       exportData.push({
 
@@ -1978,7 +1796,7 @@ async function loadFromSheet(){
   btn.innerHTML = "⏳ Loading...";
   statusEl.innerHTML = "⏳ กำลังโหลดข้อมูลจาก Google Sheet...";
 
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbwl7RFvpaoY3sAclVKCZx-YVESWeEPEIHrIo-WlqVhkP-16Y7c4xXeNO757i81pBfb8/exec";
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbzuja46T3uM-FP9k2Gxcx4RJIZ7U9XL7D7ZGufq4bthKlnEMr0cZSjdxlIQhayCiTQ/exec";
 
   try{
     const res = await fetch(GAS_URL + "?sheet=symbol_active");
