@@ -1121,22 +1121,106 @@ function getSession(){
 
 }
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbzjYhIzv2c3k6_IRhDFDbXNKIqJr0hUzhCix66DDuYJKehyOYYVzkanHyvrj46N0_S0/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzwkGvFnIzWUNVhlw8965gq1a-ngSHt5cmYuUKKmj08X--pklYakVouj38TeBQGt1D0/exec";
+const TWELVE_KEY = "859149d67e7b497bb530e3f0f60c1908";
+const TWELVE_BASE = "https://api.twelvedata.com";
 
-/* โหลด quotes ทั้งหมดจาก Apps Script ครั้งเดียว */
+/* โหลด quote ทีละตัวจาก Twelve Data ตรงๆ */
 async function loadAllQuotes(){
-  try{
-    const res = await fetch(GAS_URL + "?action=quotes");
-    const json = await res.json();
-    if(json.error) throw new Error(json.error);
-    // แปลง array เป็น map: symbol -> quote
-    const map = {};
-    (json.quotes || []).forEach(q => { map[q.symbol] = q; });
-    return map;
-  } catch(e){
-    console.warn("loadAllQuotes failed:", e.message);
-    return null;
+  const currentGroups = activeGroups || DEFAULT_GROUPS;
+  const symbols = [...new Set(Object.values(currentGroups).flat())];
+
+  document.getElementById("statusMsg").innerHTML =
+    `⏳ Fetching ${symbols.length} symbols from Twelve Data...`;
+
+  const BATCH = 8;
+  const map = {};
+
+  for(let i = 0; i < symbols.length; i += BATCH){
+    const batch = symbols.slice(i, i + BATCH);
+    const pct = Math.round((i / symbols.length) * 100);
+    document.getElementById("statusMsg").innerHTML =
+      `⏳ Loading... ${pct}% (${i}/${symbols.length})`;
+
+    const results = await Promise.all(batch.map(async sym => {
+      try{
+        const url = `${TWELVE_BASE}/time_series?symbol=${sym}&interval=1h&outputsize=60&apikey=${TWELVE_KEY}`;
+        const res = await fetch(url, { signal: AbortSignal.timeout(15000) });
+        const json = await res.json();
+
+        if(json.status === "error" || !json.values){
+          console.warn(`${sym}: ${json.message || "no data"}`);
+          return { sym, data: null };
+        }
+
+        const sorted  = [...json.values].reverse();
+        const closes  = sorted.map(c => parseFloat(c.close));
+        const volumes = sorted.map(c => parseFloat(c.volume));
+        const highs   = sorted.map(c => parseFloat(c.high));
+        const lows    = sorted.map(c => parseFloat(c.low));
+
+        if(closes.length < 50) return { sym, data: null };
+
+        const price     = closes[closes.length-1];
+        const prevClose = closes[closes.length-2] || price;
+        const ema20     = calcEMAArr(closes, 20);
+        const ema50     = calcEMAArr(closes, 50);
+        const rsi       = calcRSIArr(closes, 14);
+        const avgVol    = volumes.slice(-21,-1).reduce((a,b)=>a+b,0)/20;
+        const lastVol   = volumes[volumes.length-1];
+        const volRatio  = avgVol > 0 ? Math.round(lastVol/avgVol*100)/100 : 1;
+
+        return { sym, data: {
+          price:     Math.round(price*100)/100,
+          changePct: Math.round((price-prevClose)/prevClose*10000)/100,
+          volume:    Math.round(lastVol),
+          volRatio,
+          rsi:       Math.round(rsi*100)/100,
+          ema20:     Math.round(ema20*100)/100,
+          ema50:     Math.round(ema50*100)/100,
+          high:      Math.round(highs[highs.length-1]*100)/100,
+          low:       Math.round(lows[lows.length-1]*100)/100,
+        }};
+      } catch(e){
+        console.warn(`${sym}: ${e.message}`);
+        return { sym, data: null };
+      }
+    }));
+
+    results.forEach(r => { if(r.data) map[r.sym] = r.data; });
+
+    if(i + BATCH < symbols.length){
+      for(let t = 12; t > 0; t--){
+        document.getElementById("statusMsg").innerHTML =
+          `⏳ Rate limit... รอ ${t}s (${i+BATCH}/${symbols.length} done)`;
+        await new Promise(r => setTimeout(r, 1000));
+      }
+    }
   }
+
+  document.getElementById("statusMsg").innerHTML =
+    `✅ Loaded ${Object.keys(map).length}/${symbols.length} symbols`;
+  return Object.keys(map).length > 0 ? map : null;
+}
+
+function calcEMAArr(closes, period){
+  if(closes.length < period) return closes[closes.length-1]||0;
+  const k = 2/(period+1);
+  let ema = closes.slice(0,period).reduce((a,b)=>a+b,0)/period;
+  for(let i=period;i<closes.length;i++) ema = closes[i]*k + ema*(1-k);
+  return ema;
+}
+
+function calcRSIArr(closes, period){
+  if(closes.length < period+1) return 50;
+  let gains=0, losses=0;
+  for(let i=closes.length-period;i<closes.length;i++){
+    const diff = closes[i]-closes[i-1];
+    if(diff>0) gains+=diff; else losses+=Math.abs(diff);
+  }
+  if(losses===0) return 100;
+  const rs=(gains/period)/(losses/period);
+  return 100-(100/(1+rs));
 }
 
 /* fetchData รับ quote จาก map ที่โหลดมาแล้ว หรือ fallback Yahoo ตรงๆ */
@@ -1796,7 +1880,7 @@ async function loadFromSheet(){
   btn.innerHTML = "⏳ Loading...";
   statusEl.innerHTML = "⏳ กำลังโหลดข้อมูลจาก Google Sheet...";
 
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbzjYhIzv2c3k6_IRhDFDbXNKIqJr0hUzhCix66DDuYJKehyOYYVzkanHyvrj46N0_S0/exec";
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbyPIAa9zBFqgRs_VgKa6tK2O7OAzVFTAH0Qf8U1XY40Qu1zJHCBkryzdneMVacSlLyW/exec";
 
   try{
     const res = await fetch(GAS_URL + "?sheet=symbol_active");
