@@ -1121,7 +1121,7 @@ function getSession(){
 
 }
 
-const GAS_URL = "https://script.google.com/macros/s/AKfycbyODPUIrgyg_Gnpxqbaj6vbRc0rqc46WC4bDKAJP93WP1tbbcqJpA9qTcNDldPmNj44/exec";
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzjYhIzv2c3k6_IRhDFDbXNKIqJr0hUzhCix66DDuYJKehyOYYVzkanHyvrj46N0_S0/exec";
 
 /* โหลด quotes ทั้งหมดจาก Apps Script ครั้งเดียว */
 async function loadAllQuotes(){
@@ -1796,7 +1796,7 @@ async function loadFromSheet(){
   btn.innerHTML = "⏳ Loading...";
   statusEl.innerHTML = "⏳ กำลังโหลดข้อมูลจาก Google Sheet...";
 
-  const GAS_URL = "https://script.google.com/macros/s/AKfycbyODPUIrgyg_Gnpxqbaj6vbRc0rqc46WC4bDKAJP93WP1tbbcqJpA9qTcNDldPmNj44/exec";
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbzjYhIzv2c3k6_IRhDFDbXNKIqJr0hUzhCix66DDuYJKehyOYYVzkanHyvrj46N0_S0/exec";
 
   try{
     const res = await fetch(GAS_URL + "?sheet=symbol_active");
