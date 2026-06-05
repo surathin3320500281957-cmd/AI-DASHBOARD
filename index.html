@@ -1419,10 +1419,10 @@ async function load(){
 
         symbol:d.symbol,
         signal:d.signal,
-        trend:d.trend,
+        trend:d.trend.replace(/[^A-Z]/g,'').trim(),
         action:d.action,
         rsi:d.rsi,
-        heat:d.heat,
+        heat:d.heat.replace(/[^A-Z]/g,'').trim(),
         confidence:d.confidence,
         smartRank:d.smartRank,
         volume:d.volText,
