@@ -753,7 +753,7 @@ MARKET FEAR INDEX
 <input type="file" id="jsonFileInput" accept=".json" style="display:none;" onchange="importMLConfig(event)"/>
 
 <button id="resetConfigBtn" onclick="resetMLConfig()" style="background:#374151;display:none;">
-↩️ Reset Config
+☁️ ใช้ Config จาก Google Drive
 </button>
 
 </div>
@@ -1894,6 +1894,7 @@ function exportText(){
    ML CONFIG
    ========================================= */
 let mlConfig = null;
+let driveMLConfig = null; // ค่า baseline จาก Google Drive
 
 function importMLConfig(event){
   const file = event.target.files[0];
@@ -1907,7 +1908,7 @@ function importMLConfig(event){
         return;
       }
       mlConfig = json;
-      showMLConfigStatus();
+      showMLConfigStatus(true); // แสดงปุ่ม Reset เพราะ user import เอง
       alert(`✅ โหลด ML Config สำเร็จ!\nversion: ${json.version}\ngenerated: ${json.generated}\n\nกด 🔄 Refresh เพื่อใช้ config ใหม่`);
     } catch(err){
       alert("❌ Parse JSON ไม่ได้: " + err.message);
@@ -1917,12 +1918,13 @@ function importMLConfig(event){
   event.target.value = "";
 }
 
-function showMLConfigStatus(){
+function showMLConfigStatus(showReset = false){
   if(!mlConfig) return;
   const el = document.getElementById("mlConfigStatus");
   const info = document.getElementById("mlConfigInfo");
   el.style.display = "block";
-  document.getElementById("resetConfigBtn").style.display = "inline-block";
+  // แสดงปุ่ม Reset เฉพาะตอน user browse import เองเท่านั้น
+  document.getElementById("resetConfigBtn").style.display = showReset ? "inline-block" : "none";
   const w = mlConfig.weights;
   info.innerHTML = `
     v${mlConfig.version} | ${mlConfig.generated?.slice(0,10) || ""}
@@ -1932,10 +1934,17 @@ function showMLConfigStatus(){
 }
 
 function resetMLConfig(){
-  mlConfig = null;
-  document.getElementById("mlConfigStatus").style.display = "none";
-  document.getElementById("resetConfigBtn").style.display = "none";
-  alert("↩️ รีเซ็ตกลับเป็น scoring เดิมแล้ว\nกด 🔄 Refresh เพื่ออัพเดต");
+  if(driveMLConfig){
+    // กลับไปใช้ค่าจาก Google Drive
+    mlConfig = driveMLConfig;
+    showMLConfigStatus(false); // ซ่อนปุ่ม Reset
+    alert("↩️ รีเซ็ตกลับเป็น ML Config จาก Google Drive แล้ว\nกด 🔄 Refresh เพื่ออัพเดต");
+  } else {
+    mlConfig = null;
+    document.getElementById("mlConfigStatus").style.display = "none";
+    document.getElementById("resetConfigBtn").style.display = "none";
+    alert("↩️ รีเซ็ตกลับเป็น scoring เดิมแล้ว\nกด 🔄 Refresh เพื่ออัพเดต");
+  }
 }
 
 /* คำนวณ composite score จาก ML config */
@@ -2442,7 +2451,8 @@ async function autoLoadMLConfig() {
     if(!json.weights || !json.thresholds) return;
 
     mlConfig = json;
-    showMLConfigStatus();
+    driveMLConfig = json; // เก็บเป็น baseline สำหรับ Reset
+    showMLConfigStatus(false); // โหลดจาก Drive → ซ่อนปุ่ม Reset
     console.log("✅ Auto-loaded ml_config จาก Drive v" + json.version);
 
   } catch(err) {
