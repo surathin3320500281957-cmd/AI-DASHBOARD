@@ -1289,26 +1289,31 @@ async function fetchData(symbol, quoteMap){
     if(price > ema50val){ trend = "🟢 UP";   trendCls = "up"; }
     if(price < ema50val){ trend = "🔴 DOWN";  trendCls = "down"; }
 
+    // ── อ่านค่า boundary จาก ml_config ถ้ามี หรือใช้ default ──
+    const hb = mlConfig?.heat_boundary       || { hot_min:65, extreme_min:80 };
+    const cb = mlConfig?.confidence_boundary || { A:7, B:5 };
+    const rb = mlConfig?.risk_boundary       || { low_min:6, medium_min:4 };
+
     let heat = "🟢 COOL"; let heatCls = "cool";
-    if(rsiVal >= 65){ heat = "🟡 HOT";     heatCls = "hot"; }
-    if(rsiVal >= 80){ heat = "🔴 EXTREME"; heatCls = "extreme"; }
+    if(rsiVal >= (hb.extreme_min||80)){ heat = "🔴 EXTREME"; heatCls = "extreme"; }
+    else if(rsiVal >= (hb.hot_min||65)){ heat = "🟡 HOT";    heatCls = "hot"; }
 
     let confidence = "C"; let confidenceCls = "confC";
-    if(score >= 5){ confidence = "B"; confidenceCls = "confB"; }
-    if(score >= 7){ confidence = "A"; confidenceCls = "confA"; }
+    if(score >= (cb.A||7)){ confidence = "A"; confidenceCls = "confA"; }
+    else if(score >= (cb.B||5)){ confidence = "B"; confidenceCls = "confB"; }
 
     let smartRank = score;
     let signal = "👁️"; let action = "WATCH"; let cls = "wait";
-    if(smartRank >= 7){ signal = "🟢"; action = "BUY";          cls = "buy"; }
-    if(rsiVal >= 80){   signal = "🔥"; action = "TAKE PROFIT";  cls = "wait"; }
+    if(smartRank >= (cb.A||7)){ signal = "🟢"; action = "BUY";         cls = "buy"; }
+    if(rsiVal >= (hb.extreme_min||80)){ signal = "🔥"; action = "TAKE PROFIT"; cls = "wait"; }
 
     let volText = "NORMAL"; let volCls = "volMid";
     if(volRatio >= 1.5){ volText = "HIGH"; volCls = "volHigh"; }
     if(volRatio < 0.8){  volText = "LOW";  volCls = "volLow"; }
 
     let risk = "LOW"; let riskCls = "riskLow";
-    if(smartRank <= 5){ risk = "MEDIUM"; riskCls = "riskMid"; }
-    if(smartRank <= 3){ risk = "HIGH";   riskCls = "riskHigh"; }
+    if(smartRank < (rb.medium_min||4)){ risk = "HIGH";   riskCls = "riskHigh"; }
+    else if(smartRank < (rb.low_min||6)){ risk = "MEDIUM"; riskCls = "riskMid"; }
 
     let leaderTag = `<span class="tag tagWatch">👁️ WATCH</span>`;
     let rowClass = "";
