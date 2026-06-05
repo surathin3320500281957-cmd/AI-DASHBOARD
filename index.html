@@ -2407,6 +2407,53 @@ function applyAndGoDashboard(){
 // ไม่ auto-load dashboard — เปิด Manage Symbols tab ก่อน
 // switchTab เริ่มต้นที่ manage แล้ว (active อยู่แล้วใน HTML)
 
+/* =========================================
+   AUTO LOAD ML CONFIG จาก Google Drive (ผ่าน Signal Matrix GAS)
+   ========================================= */
+const SIGNAL_GAS_URL = "https://script.google.com/macros/s/AKfycbyLOxJT_jnGW4JassD86G4l8pOPD4lxbKU4pfHibrq7Fwi0oEdSGOOQtUxWTD_bFW0/exec";
+
+async function autoLoadMLConfig() {
+  const statusEl = document.getElementById("mlConfigStatus");
+  const infoEl   = document.getElementById("mlConfigInfo");
+  if(statusEl) {
+    statusEl.style.display = "block";
+    infoEl.innerHTML = `<span style="color:#a5b4fc">⏳ กำลังโหลด ML Config จาก Drive...</span>`;
+  }
+  try {
+    const res = await fetch(
+      SIGNAL_GAS_URL + "?action=get_ml_config",
+      { redirect: "follow", signal: AbortSignal.timeout(10000) }
+    );
+    const json = await res.json();
+
+    if(json.error) {
+      if(statusEl) {
+        infoEl.innerHTML = `<span style="color:#facc15">⚠️ ยังไม่มี ml_config ใน Drive — ใช้ค่า default</span>`;
+        setTimeout(() => { statusEl.style.display = "none"; }, 4000);
+      }
+      return;
+    }
+
+    if(!json.weights || !json.thresholds) return;
+
+    mlConfig = json;
+    showMLConfigStatus();
+    console.log("✅ Auto-loaded ml_config จาก Drive v" + json.version);
+
+  } catch(err) {
+    console.warn("[autoLoadMLConfig] โหลดไม่ได้:", err);
+    if(statusEl) {
+      infoEl.innerHTML = `<span style="color:#f87171">❌ โหลด ML Config ไม่ได้ — ใช้ค่า default</span>`;
+      setTimeout(() => { statusEl.style.display = "none"; }, 4000);
+    }
+  }
+}
+
+// เรียกตอน page โหลด
+window.addEventListener("load", () => {
+  autoLoadMLConfig();
+});
+
 </script>
 
 </body>
