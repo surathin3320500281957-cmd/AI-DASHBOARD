@@ -685,6 +685,46 @@ th{
   color:#94a3b8;
 }
 
+/* ML PICK TABLE */
+.pickTable{
+  width:100%;
+  border-collapse:collapse;
+  font-size:13px;
+}
+.pickTable th{
+  background:#0f172a;
+  color:#64748b;
+  padding:10px 12px;
+  text-align:left;
+  font-size:11px;
+  letter-spacing:1px;
+  border-bottom:2px solid #1e293b;
+}
+.pickTable td{
+  padding:10px 12px;
+  border-bottom:1px solid #1e293b;
+  vertical-align:middle;
+}
+.pickTable tr:hover td{
+  background:#0f172a;
+}
+.pickReason{
+  font-size:11px;
+  color:#64748b;
+  line-height:1.6;
+}
+.pickBadge{
+  display:inline-block;
+  padding:2px 8px;
+  border-radius:4px;
+  font-size:11px;
+  font-weight:bold;
+}
+.pickBadgeB{ background:#1e3a5f; color:#7dd3fc; }
+.pickBadgeA{ background:#14532d; color:#4ade80; }
+.pickTrend{ color:#4ade80; font-weight:bold; }
+.pickPct{ font-family:monospace; }
+
 </style>
 </head>
 
@@ -693,6 +733,7 @@ th{
 <div class="tabBar">
   <button class="tabBtn" id="tabDashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
   <button class="tabBtn active" id="tabManage" onclick="switchTab('manage')">⚙️ Manage Symbols</button>
+  <button class="tabBtn" id="tabPick" onclick="switchTab('pick')">🎯 ML Pick</button>
 </div>
 
 <div id="contentDashboard" class="tabContent">
@@ -924,6 +965,21 @@ class="breadthValue">
 </div>
 
 </div><!-- END contentManage -->
+
+<!-- ML PICK TAB -->
+<div id="contentPick" class="tabContent">
+  <div style="margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <div>
+      <h2 style="margin:0;font-size:18px;">🎯 ML Pick — หุ้นที่คัดเลือกแล้ว</h2>
+      <div style="font-size:12px;color:#64748b;margin-top:4px;" id="pickSubtitle">รอโหลดข้อมูลจาก Dashboard ก่อนครับ</div>
+    </div>
+  </div>
+  <div id="pickTableWrap">
+    <div style="color:#64748b;padding:32px;text-align:center;font-size:13px;">
+      ⏳ กด Refresh ใน Dashboard ก่อน จากนั้น ML Pick จะแสดงผลอัตโนมัติครับ
+    </div>
+  </div>
+</div>
 
 <script>
 
@@ -1678,11 +1734,106 @@ ${d.risk}
   ).innerHTML =
   "✅ Dashboard updated successfully";
 
+  // อัปเดต ML Pick tab อัตโนมัติหลัง dashboard โหลดเสร็จ
+  renderPickTab(allResults);
+
   btn.disabled = false;
 
   btn.innerHTML =
   "🔄 Refresh";
 
+}
+
+/* ============================================================ ML PICK TAB */
+function renderPickTab(allResults) {
+  const wrap = document.getElementById('pickTableWrap');
+  const subtitle = document.getElementById('pickSubtitle');
+  if(!wrap) return;
+
+  // คัดกรอง 4 ชั้น
+  // ชั้น 1: confidence B ขึ้นไป
+  // ชั้น 2: trend UP
+  // ชั้น 3: heat ไม่ EXTREME
+  // ชั้น 4: เรียงตาม pct50 ต่ำสุด (มี room ขึ้น)
+  const picks = allResults
+    .filter(d => d.confidence === 'A' || d.confidence === 'B')
+    .filter(d => d.trend && d.trend.includes('UP'))
+    .filter(d => !d.heat || !d.heat.includes('EXTREME'))
+    .map(d => {
+      const price = parseFloat(d.price) || 0;
+      const ema50 = parseFloat(d.ema50) || price;
+      const ema20 = parseFloat(d.ema20) || price;
+      const pct50 = ema50 > 0 ? ((price - ema50) / ema50 * 100) : 0;
+      const emaMom = ema50 > 0 ? ((ema20 - ema50) / ema50 * 100) : 0;
+      // สร้าง reason
+      const reasons = [];
+      if(d.confidence === 'A') reasons.push('Confidence A');
+      if(d.confidence === 'B') reasons.push('Confidence B');
+      if(pct50 < 3) reasons.push(`pct50 ${pct50.toFixed(1)}% (มี room)`);
+      if(d.heat === 'COOL') reasons.push('Heat COOL');
+      if(d.risk === 'LOW') reasons.push('Risk LOW');
+      if(emaMom > 0) reasons.push(`EMAMom +${emaMom.toFixed(2)}%`);
+      return { ...d, pct50, emaMom, reasons };
+    })
+    .sort((a, b) => a.pct50 - b.pct50); // pct50 น้อยสุด = มี room มากสุด
+
+  // dedup ตาม symbol เอาอันดีสุด
+  const seen = {};
+  const unique = picks.filter(d => {
+    if(seen[d.symbol]) return false;
+    seen[d.symbol] = true;
+    return true;
+  });
+
+  const now = new Date().toLocaleTimeString();
+  subtitle.textContent = `อัปเดต ${now} · คัดจาก ${allResults.length} หุ้น · เหลือ ${unique.length} ตัว`;
+
+  if(unique.length === 0) {
+    wrap.innerHTML = '<div style="color:#64748b;padding:32px;text-align:center;font-size:13px;">ไม่มีหุ้นที่ผ่านเกณฑ์ทั้ง 4 ชั้นในขณะนี้ครับ</div>';
+    return;
+  }
+
+  const rows = unique.map((d, i) => {
+    const pct50Txt = d.pct50 >= 0 ? `+${d.pct50.toFixed(1)}%` : `${d.pct50.toFixed(1)}%`;
+    const emaMomTxt = d.emaMom >= 0 ? `+${d.emaMom.toFixed(2)}%` : `${d.emaMom.toFixed(2)}%`;
+    const pct50Clr = d.pct50 < 3 ? '#4ade80' : d.pct50 < 6 ? '#facc15' : '#ef4444';
+    const confBadge = d.confidence === 'A'
+      ? `<span class="pickBadge pickBadgeA">A</span>`
+      : `<span class="pickBadge pickBadgeB">B</span>`;
+    return `<tr>
+      <td style="font-weight:bold;color:#e2e8f0;">${i+1}</td>
+      <td style="font-weight:bold;color:#38bdf8;font-size:15px;">${d.symbol}</td>
+      <td style="color:#94a3b8;font-size:11px;">${(d.group||'').replace(/[^\w\s]/g,'').trim()}</td>
+      <td>${confBadge}</td>
+      <td class="pickTrend">↑ UP</td>
+      <td style="color:#94a3b8;">${d.heat || '—'}</td>
+      <td style="color:#94a3b8;">${d.risk || '—'}</td>
+      <td class="pickPct" style="color:${pct50Clr};">${pct50Txt}</td>
+      <td class="pickPct" style="color:#a78bfa;">${emaMomTxt}</td>
+      <td style="color:#94a3b8;font-size:12px;">${d.price}</td>
+      <td class="pickReason">${d.reasons.join(' · ')}</td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <table class="pickTable">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>SYMBOL</th>
+          <th>GROUP</th>
+          <th>CONF</th>
+          <th>TREND</th>
+          <th>HEAT</th>
+          <th>RISK</th>
+          <th>PCT50</th>
+          <th>EMAMom</th>
+          <th>PRICE</th>
+          <th>เหตุผล</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
 }
 
 /* EXPORT CSV */
@@ -2005,8 +2156,10 @@ function compositeToAction(score){
 function switchTab(tab){
   document.getElementById("contentDashboard").classList.toggle("active", tab==="dashboard");
   document.getElementById("contentManage").classList.toggle("active", tab==="manage");
+  document.getElementById("contentPick").classList.toggle("active", tab==="pick");
   document.getElementById("tabDashboard").classList.toggle("active", tab==="dashboard");
   document.getElementById("tabManage").classList.toggle("active", tab==="manage");
+  document.getElementById("tabPick").classList.toggle("active", tab==="pick");
 }
 
 /* =========================================
