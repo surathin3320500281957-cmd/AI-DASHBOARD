@@ -1765,6 +1765,19 @@ function renderPickTab(allResults) {
       const ema20 = parseFloat(d.ema20) || price;
       const pct50 = ema50 > 0 ? ((price - ema50) / ema50 * 100) : 0;
       const emaMom = ema50 > 0 ? ((ema20 - ema50) / ema50 * 100) : 0;
+
+      // pickScore ภาพรวม — สูงกว่า = ดีกว่า
+      const pct50_norm  = Math.max(0, Math.min(1, (pct50 + 10) / 20));  // normalize -10..+10 → 0..1
+      const emaMom_norm = Math.max(0, Math.min(1, (emaMom + 5) / 10));  // normalize -5..+5 → 0..1
+      const heatScore   = d.heat?.includes('COOL') ? 1 : d.heat?.includes('HOT') ? 0.5 : 0;
+      const riskScore   = d.risk === 'LOW' ? 1 : d.risk === 'MEDIUM' ? 0.6 : 0.3;
+      const confScore   = d.confidence === 'A' ? 1 : 0.7;
+      const pickScore   = (1 - pct50_norm) * 40   // room เหลือเยอะ = ดี
+                        + emaMom_norm       * 30   // momentum สด = ดี
+                        + heatScore         * 20   // ไม่ร้อน = ดี
+                        + riskScore         * 5    // risk ต่ำ = ดี
+                        + confScore         * 5;   // confidence สูง = ดี
+
       // สร้าง reason
       const reasons = [];
       if(d.confidence === 'A') reasons.push('Confidence A');
@@ -1773,9 +1786,9 @@ function renderPickTab(allResults) {
       if(d.heat === 'COOL') reasons.push('Heat COOL');
       if(d.risk === 'LOW') reasons.push('Risk LOW');
       if(emaMom > 0) reasons.push(`EMAMom +${emaMom.toFixed(2)}%`);
-      return { ...d, pct50, emaMom, reasons };
+      return { ...d, pct50, emaMom, pickScore, reasons };
     })
-    .sort((a, b) => a.pct50 - b.pct50); // pct50 น้อยสุด = มี room มากสุด
+    .sort((a, b) => b.pickScore - a.pickScore); // pickScore สูงสุด = ดีที่สุดภาพรวม
 
   // dedup ตาม symbol เอาอันดีสุด
   const seen = {};
